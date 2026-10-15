@@ -9,3 +9,4 @@ data/crops/
 data/sheets/
 data/usage.json
 .vercel
+.env*

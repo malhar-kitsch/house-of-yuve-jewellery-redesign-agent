@@ -1,0 +1,11 @@
+.venv
+outputs
+data/raw
+data/src
+data/crops
+data/sheets
+data/usage.json
+tools
+.env
+.env.*
+*.md
