@@ -1,0 +1,739 @@
+{
+  "pairs": [
+    {
+      "id": "gm01_patoda_choker",
+      "brand": "gewelsbymona",
+      "transformation": "Old gold necklace -> choker with pearl stringing, meena and Patoda-saree-inspired motifs",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A03"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A06"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A02"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A04"
+          }
+        ],
+        "inspiration": [
+          {
+            "file": "inspiration_1.jpg",
+            "source": "A05"
+          }
+        ]
+      },
+      "folder": "pairs/gm01_patoda_choker"
+    },
+    {
+      "id": "gm02_old_era_necklace",
+      "brand": "gewelsbymona",
+      "transformation": "18kt gold necklace + studs -> multi-strand gemstone bead necklaces with Patoda/enamel pendant",
+      "confidence": "medium - after images look like same post but not confirmed",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A09"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A10"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A11"
+          }
+        ]
+      },
+      "folder": "pairs/gm02_old_era_necklace"
+    },
+    {
+      "id": "gm03_bangle_to_pendant",
+      "brand": "gewelsbymona",
+      "transformation": "Grandmother's 22kt plain bangle -> elaborate kundan pendant on emerald bead + rice pearl strands",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A08@0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A08@4"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A08@6"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "A08@10"
+          }
+        ]
+      },
+      "folder": "pairs/gm03_bangle_to_pendant"
+    },
+    {
+      "id": "gm04_long_necklace_to_kundan",
+      "brand": "gewelsbymona",
+      "transformation": "Heavy long gold necklace -> kundan choker and earrings in 18kt",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A13@0"
+          }
+        ],
+        "process": [
+          {
+            "file": "process_1.jpg",
+            "source": "A13@2"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A13@5"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A13@6"
+          }
+        ],
+        "worn": [
+          {
+            "file": "worn_1.jpg",
+            "source": "A13@3"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A13@10"
+          }
+        ]
+      },
+      "folder": "pairs/gm04_long_necklace_to_kundan"
+    },
+    {
+      "id": "gm05_necklace_to_pearl_choker",
+      "brand": "gewelsbymona",
+      "transformation": "Gold collar necklace + studs -> pearl-and-gold choker with blue/white enamel centre and matching earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A16@1"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A16@4"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A16@5"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "A16@8"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A16@10"
+          }
+        ]
+      },
+      "folder": "pairs/gm05_necklace_to_pearl_choker"
+    },
+    {
+      "id": "gm06_bangle_ad",
+      "brand": "gewelsbymona",
+      "transformation": "Old bangle -> pearl and ruby kada (from an ad film, possibly AI-generated)",
+      "confidence": "low",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A20@2"
+          }
+        ],
+        "process": [
+          {
+            "file": "process_1.jpg",
+            "source": "A20@5"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A20@7"
+          }
+        ]
+      },
+      "folder": "pairs/gm06_bangle_ad"
+    },
+    {
+      "id": "gm07_light_choker_to_statement",
+      "brand": "gewelsbymona",
+      "transformation": "Light heirloom choker -> heavier statement choker with emerald drops and pearl ghungroos",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A21@3"
+          }
+        ],
+        "process": [
+          {
+            "file": "process_1.jpg",
+            "source": "A21@4"
+          },
+          {
+            "file": "process_2.jpg",
+            "source": "A21@6"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A21@8"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A21@9"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "A21@7"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A21@11"
+          }
+        ]
+      },
+      "folder": "pairs/gm07_light_choker_to_statement"
+    },
+    {
+      "id": "gm08_necklace_to_navratna",
+      "brand": "gewelsbymona",
+      "transformation": "18kt gold necklace -> navratna cabochon + kundan choker with pearls",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A22@0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A22@7"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A22@8"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "A22@9"
+          },
+          {
+            "file": "after_4.jpg",
+            "source": "A22@4"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A22@11"
+          }
+        ]
+      },
+      "folder": "pairs/gm08_necklace_to_navratna"
+    },
+    {
+      "id": "gm09_necklace_to_kundan_pearl",
+      "brand": "gewelsbymona",
+      "transformation": "Old gold necklace -> layered pearl/green-bead necklace with kundan pendant",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "A23@0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A23@6"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A23@8"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A23@11"
+          }
+        ]
+      },
+      "folder": "pairs/gm09_necklace_to_kundan_pearl"
+    },
+    {
+      "id": "kl01_haar_to_set",
+      "brand": "kivlo",
+      "transformation": "Long gold haar -> enamel/stone statement necklace, earrings and bangle",
+      "confidence": "medium - before only shown inside combined card",
+      "files": {
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "A01@3"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "A01@5"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "A01@6"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "A01@0"
+          }
+        ]
+      },
+      "folder": "pairs/kl01_haar_to_set"
+    },
+    {
+      "id": "kl02_polki_tanzanite",
+      "brand": "kivlo",
+      "transformation": "Polki choker -> polki necklace with tanzanite drops + long earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B12~p0"
+          },
+          {
+            "file": "before_2.jpg",
+            "source": "B01[110,215,555,560]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B01[110,555,965,1141]"
+          }
+        ],
+        "process": [
+          {
+            "file": "process_1.jpg",
+            "source": "B11~p0"
+          },
+          {
+            "file": "process_2.jpg",
+            "source": "B11~p1"
+          }
+        ]
+      },
+      "folder": "pairs/kl02_polki_tanzanite"
+    },
+    {
+      "id": "kl03_watch_to_bracelet",
+      "brand": "kivlo",
+      "transformation": "Old gold watch -> bracelet with large centre stone and diamonds",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B02~p0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B02~p1"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "B13@7"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "B13@8"
+          }
+        ]
+      },
+      "folder": "pairs/kl03_watch_to_bracelet"
+    },
+    {
+      "id": "kl04_temple_set_to_coral_haar",
+      "brand": "kivlo",
+      "transformation": "Old temple gold pieces -> long coral bead haar with temple pendant + earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B05~p0"
+          },
+          {
+            "file": "before_2.jpg",
+            "source": "B06[130,345,460,955]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B06[320,330,1080,1240]"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "B15@6"
+          }
+        ]
+      },
+      "folder": "pairs/kl04_temple_set_to_coral_haar"
+    },
+    {
+      "id": "kl05_bangles_upgrade",
+      "brand": "kivlo",
+      "transformation": "Plain gold bangles -> heirloom bangles with beads and drops",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B07~p0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B07~p1"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "B14@6"
+          }
+        ]
+      },
+      "folder": "pairs/kl05_bangles_upgrade"
+    },
+    {
+      "id": "kl06_simple_set_to_pearl_haar",
+      "brand": "kivlo",
+      "transformation": "Simple gold necklace set -> multi-strand pearl haar with green beads, bigger pendant + earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B08[120,340,530,920]"
+          },
+          {
+            "file": "before_2.jpg",
+            "source": "B16@1"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B08[400,400,1080,1330]"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "B16@5"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "B16@6"
+          }
+        ]
+      },
+      "folder": "pairs/kl06_simple_set_to_pearl_haar"
+    },
+    {
+      "id": "kl07_necklace_to_statement",
+      "brand": "kivlo",
+      "transformation": "Light gold necklace + earrings -> stone-set statement necklace + jhumkas",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B09~p0"
+          },
+          {
+            "file": "before_2.jpg",
+            "source": "B10~p0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B10~p1"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "B17@8"
+          }
+        ]
+      },
+      "folder": "pairs/kl07_necklace_to_statement"
+    },
+    {
+      "id": "kl08_hoops_to_earrings",
+      "brand": "kivlo",
+      "transformation": "Navratna hoop earrings -> teardrop stone statement earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B19[165,285,615,560]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B19[420,530,915,1170]"
+          }
+        ]
+      },
+      "folder": "pairs/kl08_hoops_to_earrings"
+    },
+    {
+      "id": "kl09_long_necklace_to_layered",
+      "brand": "kivlo",
+      "transformation": "Long gold necklace -> layered pearl/kundan haar + earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B20~p0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B20~p1"
+          }
+        ]
+      },
+      "folder": "pairs/kl09_long_necklace_to_layered"
+    },
+    {
+      "id": "kl10_bangles_with_diamonds",
+      "brand": "kivlo",
+      "transformation": "Four gold bangles -> bangles with diamond accents",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B21~p0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B21~p1"
+          }
+        ]
+      },
+      "folder": "pairs/kl10_bangles_with_diamonds"
+    },
+    {
+      "id": "kl11_uncut_pendant_emerald",
+      "brand": "kivlo",
+      "transformation": "Uncut diamond pendant set -> long emerald bead necklace with the pendant + earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B22[45,350,500,1180]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B22[500,320,1020,1270]"
+          }
+        ]
+      },
+      "folder": "pairs/kl11_uncut_pendant_emerald"
+    },
+    {
+      "id": "kl12_mothers_necklace",
+      "brand": "kivlo",
+      "transformation": "Mother's gold coin necklace -> new necklace (shown worn)",
+      "confidence": "medium - after only shown on person",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B23[60,465,490,1170]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B23[360,330,1080,1350]"
+          }
+        ]
+      },
+      "folder": "pairs/kl12_mothers_necklace"
+    },
+    {
+      "id": "kl13_long_set_to_pearl_haar",
+      "brand": "kivlo",
+      "transformation": "Long gold rani haar set -> pearl haar with kundan pendant, earrings and bangles",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B24[125,370,470,1080]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B24[420,350,1080,1350]"
+          }
+        ]
+      },
+      "folder": "pairs/kl13_long_set_to_pearl_haar"
+    },
+    {
+      "id": "kl14_earrings_to_necklace",
+      "brand": "kivlo",
+      "transformation": "Old chandbali earrings -> pearl-strand necklace with the earrings as pendant",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B28[100,370,530,690]"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B28[520,580,955,1240]"
+          }
+        ]
+      },
+      "folder": "pairs/kl14_earrings_to_necklace"
+    },
+    {
+      "id": "kl15_pendant_chain_to_ruby_beads",
+      "brand": "kivlo",
+      "transformation": "Long chain with round pendant + earrings -> ruby bead multi-strand necklace + statement earrings",
+      "confidence": "high",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B04@0"
+          }
+        ],
+        "after": [
+          {
+            "file": "after_1.jpg",
+            "source": "B04@2"
+          },
+          {
+            "file": "after_2.jpg",
+            "source": "B04@5"
+          },
+          {
+            "file": "after_3.jpg",
+            "source": "B03@11"
+          }
+        ],
+        "combined": [
+          {
+            "file": "combined_1.jpg",
+            "source": "B04@8"
+          }
+        ]
+      },
+      "folder": "pairs/kl15_pendant_chain_to_ruby_beads"
+    },
+    {
+      "id": "kl16_coin_necklace",
+      "brand": "kivlo",
+      "transformation": "Coin necklace - before and in-process only, no after",
+      "confidence": "n/a",
+      "files": {
+        "before": [
+          {
+            "file": "before_1.jpg",
+            "source": "B27~p0"
+          }
+        ],
+        "process": [
+          {
+            "file": "process_1.jpg",
+            "source": "B27~p1"
+          }
+        ]
+      },
+      "folder": "incomplete/kl16_coin_necklace"
+    }
+  ],
+  "style_refs": [
+    "A07@6",
+    "A12@0",
+    "A15@6",
+    "A17",
+    "A18@6",
+    "A18@9",
+    "A19@11",
+    "B18~p0",
+    "B25",
+    "B26@6"
+  ]
+}

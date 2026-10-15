@@ -1,0 +1,20 @@
+{
+  "id": "kl11_uncut_pendant_emerald",
+  "brand": "kivlo",
+  "transformation": "Uncut diamond pendant set -> long emerald bead necklace with the pendant + earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B22[45,350,500,1180]"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B22[500,320,1020,1270]"
+      }
+    ]
+  }
+}

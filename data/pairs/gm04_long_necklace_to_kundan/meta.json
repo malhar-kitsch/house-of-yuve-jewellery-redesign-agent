@@ -1,0 +1,42 @@
+{
+  "id": "gm04_long_necklace_to_kundan",
+  "brand": "gewelsbymona",
+  "transformation": "Heavy long gold necklace -> kundan choker and earrings in 18kt",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A13@0"
+      }
+    ],
+    "process": [
+      {
+        "file": "process_1.jpg",
+        "source": "A13@2"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A13@5"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A13@6"
+      }
+    ],
+    "worn": [
+      {
+        "file": "worn_1.jpg",
+        "source": "A13@3"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A13@10"
+      }
+    ]
+  }
+}

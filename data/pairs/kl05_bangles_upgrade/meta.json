@@ -1,0 +1,24 @@
+{
+  "id": "kl05_bangles_upgrade",
+  "brand": "kivlo",
+  "transformation": "Plain gold bangles -> heirloom bangles with beads and drops",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B07~p0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B07~p1"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "B14@6"
+      }
+    ]
+  }
+}

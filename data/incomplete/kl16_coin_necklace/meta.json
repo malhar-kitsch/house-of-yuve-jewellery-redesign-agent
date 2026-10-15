@@ -1,0 +1,20 @@
+{
+  "id": "kl16_coin_necklace",
+  "brand": "kivlo",
+  "transformation": "Coin necklace - before and in-process only, no after",
+  "confidence": "n/a",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B27~p0"
+      }
+    ],
+    "process": [
+      {
+        "file": "process_1.jpg",
+        "source": "B27~p1"
+      }
+    ]
+  }
+}

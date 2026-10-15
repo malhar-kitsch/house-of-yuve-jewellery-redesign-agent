@@ -1,0 +1,34 @@
+{
+  "id": "kl15_pendant_chain_to_ruby_beads",
+  "brand": "kivlo",
+  "transformation": "Long chain with round pendant + earrings -> ruby bead multi-strand necklace + statement earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B04@0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B04@2"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "B04@5"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "B03@11"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "B04@8"
+      }
+    ]
+  }
+}

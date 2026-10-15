@@ -1,0 +1,32 @@
+{
+  "id": "kl06_simple_set_to_pearl_haar",
+  "brand": "kivlo",
+  "transformation": "Simple gold necklace set -> multi-strand pearl haar with green beads, bigger pendant + earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B08[120,340,530,920]"
+      },
+      {
+        "file": "before_2.jpg",
+        "source": "B16@1"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B08[400,400,1080,1330]"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "B16@5"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "B16@6"
+      }
+    ]
+  }
+}

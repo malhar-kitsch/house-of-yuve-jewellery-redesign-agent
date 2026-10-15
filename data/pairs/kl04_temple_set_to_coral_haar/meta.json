@@ -1,0 +1,28 @@
+{
+  "id": "kl04_temple_set_to_coral_haar",
+  "brand": "kivlo",
+  "transformation": "Old temple gold pieces -> long coral bead haar with temple pendant + earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B05~p0"
+      },
+      {
+        "file": "before_2.jpg",
+        "source": "B06[130,345,460,955]"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B06[320,330,1080,1240]"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "B15@6"
+      }
+    ]
+  }
+}

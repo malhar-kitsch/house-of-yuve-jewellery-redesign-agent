@@ -1,0 +1,30 @@
+{
+  "id": "gm09_necklace_to_kundan_pearl",
+  "brand": "gewelsbymona",
+  "transformation": "Old gold necklace -> layered pearl/green-bead necklace with kundan pendant",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A23@0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A23@6"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A23@8"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A23@11"
+      }
+    ]
+  }
+}

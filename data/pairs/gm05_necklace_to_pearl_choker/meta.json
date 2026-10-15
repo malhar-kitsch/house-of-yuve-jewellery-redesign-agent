@@ -1,0 +1,34 @@
+{
+  "id": "gm05_necklace_to_pearl_choker",
+  "brand": "gewelsbymona",
+  "transformation": "Gold collar necklace + studs -> pearl-and-gold choker with blue/white enamel centre and matching earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A16@1"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A16@4"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A16@5"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "A16@8"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A16@10"
+      }
+    ]
+  }
+}

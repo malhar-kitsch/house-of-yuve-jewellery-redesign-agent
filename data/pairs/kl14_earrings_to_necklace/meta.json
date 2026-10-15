@@ -1,0 +1,20 @@
+{
+  "id": "kl14_earrings_to_necklace",
+  "brand": "kivlo",
+  "transformation": "Old chandbali earrings -> pearl-strand necklace with the earrings as pendant",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B28[100,370,530,690]"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B28[520,580,955,1240]"
+      }
+    ]
+  }
+}

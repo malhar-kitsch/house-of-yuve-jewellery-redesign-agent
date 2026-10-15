@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>House of Yuve Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f7f3ea;--card:#fffdf8;--ink:#2a2620;--muted:#7a7164;--gold:#a8823c;--line:#e6dccb;--teal:#1f4b5c}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-ui,sans-serif}
+main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}
+h1{font:600 40px/1.1 "Cormorant Garamond",serif;margin:0 0 4px}
+h1 span{color:var(--gold)}
+.sub{color:var(--muted);margin:0 0 28px}
+.top{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
+@media(max-width:760px){.top{grid-template-columns:1fr}}
+.drop{border:1.5px dashed var(--line);border-radius:14px;background:var(--card);aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;text-align:center;color:var(--muted);cursor:pointer;overflow:hidden;position:relative}
+.drop.over{border-color:var(--gold)}
+.drop img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px}
+label{font-weight:500;display:block;margin-bottom:6px}
+textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px;font:inherit;background:#fff;resize:vertical;min-height:70px}
+.row{display:flex;gap:12px;align-items:center;margin-top:14px;flex-wrap:wrap}
+select{border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;background:#fff}
+button{background:var(--teal);color:#fff;border:0;border-radius:999px;padding:11px 26px;font:500 15px Inter;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#fff}
+.seg button{background:none;color:var(--muted);padding:7px 16px;font-size:14px}
+.seg button.on{background:var(--gold);color:#fff}
+.spend{margin-left:auto;font-size:13px;color:var(--muted)}
+.spend.warn{color:#b3261e;font-weight:500}
+.status{margin-top:14px;color:var(--muted);min-height:22px}
+.status.err{color:#b3261e}
+.piece{margin-top:28px;font-size:14px;color:var(--muted)}
+.piece b{color:var(--ink)}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:20px;margin-top:20px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;display:flex;flex-direction:column}
+.card .img{aspect-ratio:4/5;background:#efe8da;display:flex;align-items:center;justify-content:center;color:var(--muted)}
+.card .img img{width:100%;height:100%;object-fit:contain;cursor:zoom-in}
+.card .body{padding:14px 16px 16px}
+.card h3{font:600 22px/1.2 "Cormorant Garamond",serif;margin:0 0 6px}
+.card p{margin:0 0 8px;font-size:14px}
+.card .reuse{color:var(--muted);font-size:13px}
+.ex{display:flex;gap:6px;margin-top:10px}
+.ex img{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+.engine{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
+.keep{margin-top:12px;width:100%;background:none;color:var(--gold);border:1px solid var(--gold);padding:8px 14px;font-size:14px}
+.keep.on{background:var(--gold);color:#fff}
+.shimmer{background:linear-gradient(90deg,#efe8da 25%,#f7f1e4 50%,#efe8da 75%);background-size:200% 100%;animation:sh 1.4s infinite}
+@keyframes sh{to{background-position:-200% 0}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Old gold, <span>new story</span></h1>
+  <p class="sub">Upload a photo of an old piece. We'll suggest modern redesigns that reuse your gold — no melting.</p>
+
+  <div class="top">
+    <div class="drop" id="drop"><div>Tap or drop a photo<br><small>JPG / PNG</small></div><input type="file" id="file" accept="image/*" hidden></div>
+    <div class="panel">
+      <label for="wish">Anything you'd like? <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <textarea id="wish" placeholder="e.g. something light for daily wear, or turn it into a bracelet"></textarea>
+      <div class="row">
+        <div class="seg" id="style" role="radiogroup" aria-label="Style">
+          <button type="button" class="on" data-v="modern">Modern</button><button type="button" data-v="traditional">Traditional</button>
+        </div>
+        <select id="count"><option value="1">1 design</option><option value="2">2 designs</option><option value="4" selected>4 designs</option><option value="6">6 designs</option></select>
+        <select id="engine" title="Image AI">
+          <option value="gemini">Gemini · ~₹8</option>
+          <option value="gpt">OpenAI · ~₹5</option>
+          <option value="gpt-high">OpenAI high · ~₹16</option>
+          <option value="flux">FLUX · ~₹6</option>
+          <option value="compare">Compare all 3 · ~₹19</option>
+        </select>
+        <button id="go" disabled>Create designs</button>
+        <span class="spend" id="spend"></span>
+      </div>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+
+  <div class="piece" id="piece"></div>
+  <div class="grid" id="grid"></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let file = null, style = 'modern';
+$('style').querySelectorAll('button').forEach(b => b.onclick = () => {
+  style = b.dataset.v;
+  $('style').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+});
+
+function pick(f){
+  if(!f || !f.type.startsWith('image/')) return;
+  file = f;
+  const img = document.createElement('img'); img.src = URL.createObjectURL(f);
+  $('drop').querySelector('img')?.remove(); $('drop').appendChild(img);
+  $('go').disabled = false;
+}
+$('drop').onclick = () => $('file').click();
+$('file').onchange = e => pick(e.target.files[0]);
+['dragover','dragenter'].forEach(t => $('drop').addEventListener(t, e => {e.preventDefault(); $('drop').classList.add('over')}));
+['dragleave','drop'].forEach(t => $('drop').addEventListener(t, e => {e.preventDefault(); $('drop').classList.remove('over')}));
+$('drop').addEventListener('drop', e => pick(e.dataTransfer.files[0]));
+
+function showSpend(u){
+  $('spend').textContent = `Spent ≈ Gemini $${u.gemini.toFixed(2)} · OpenRouter $${u.openrouter.toFixed(2)}`;
+  $('spend').classList.toggle('warn', u.over.length > 0);
+  if(u.over.length) $('spend').textContent += ` — over limit: ${u.over.join(', ')}`;
+}
+fetch('/api/usage').then(r => r.json()).then(showSpend).catch(()=>{});
+
+$('go').onclick = async () => {
+  const n = +$('count').value * ($('engine').value === 'compare' ? 3 : 1);
+  $('go').disabled = true; $('status').className = 'status';
+  $('status').textContent = 'Studying your piece and sketching ideas… (about 30–60 seconds)';
+  $('piece').textContent = '';
+  $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
+  const fd = new FormData(); fd.append('photo', file); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value);
+  try{
+    const r = await fetch('/api/redesign', {method:'POST', body:fd});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.detail || 'Something went wrong');
+    $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}`;
+    $('grid').innerHTML = d.designs.map((x, i) => `
+      <div class="card">
+        <div class="img">${x.image ? `<a href="/outputs/${d.run}/${x.image}" target="_blank"><img src="/outputs/${d.run}/${x.image}" alt=""></a>` : `<small>${esc(x.error || 'No image')}</small>`}</div>
+        <div class="body">
+          <div class="engine">${esc(x.engine_name || '')}</div>
+          <h3>${esc(x.title)}</h3>
+          <p>${esc(x.idea)}</p>
+          <div class="reuse">${esc(x.reuse || '')}</div>
+          <div class="ex" title="Reference projects used">${x.examples.map(e => `<img src="/examples/${e}/after" alt="${e}">`).join('')}</div>
+          ${x.image ? `<button class="keep" data-run="${d.run}" data-i="${i + 1}">♡ Keep as example</button>` : ''}
+        </div>
+      </div>`).join('');
+    $('status').textContent = '';
+    showSpend(d.usage);
+  }catch(e){
+    $('grid').innerHTML = ''; $('status').className = 'status err'; $('status').textContent = e.message;
+  }
+  $('go').disabled = false;
+};
+$('grid').addEventListener('click', async e => {
+  const b = e.target.closest('.keep'); if(!b) return;
+  const kept = !b.classList.contains('on');
+  const fd = new FormData(); fd.append('run', b.dataset.run); fd.append('index', b.dataset.i); fd.append('kept', kept);
+  b.disabled = true;
+  try{
+    const r = await fetch('/api/keep', {method:'POST', body:fd});
+    if(!r.ok) throw 0;
+    b.classList.toggle('on', kept);
+    b.textContent = kept ? '♥ Kept — will guide future designs' : '♡ Keep as example';
+  }catch{ b.textContent = 'Could not save — try again'; }
+  b.disabled = false;
+});
+function esc(s){return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+</script>
+</body>
+</html>

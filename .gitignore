@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+.DS_Store
+outputs/
+data/raw/
+data/src/
+data/crops/
+data/sheets/
+data/usage.json
+.vercel

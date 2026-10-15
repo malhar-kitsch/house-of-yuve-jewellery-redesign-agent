@@ -1,0 +1,38 @@
+{
+  "id": "gm08_necklace_to_navratna",
+  "brand": "gewelsbymona",
+  "transformation": "18kt gold necklace -> navratna cabochon + kundan choker with pearls",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A22@0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A22@7"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A22@8"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "A22@9"
+      },
+      {
+        "file": "after_4.jpg",
+        "source": "A22@4"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A22@11"
+      }
+    ]
+  }
+}

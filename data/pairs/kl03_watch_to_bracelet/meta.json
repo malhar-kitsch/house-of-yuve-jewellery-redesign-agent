@@ -1,0 +1,28 @@
+{
+  "id": "kl03_watch_to_bracelet",
+  "brand": "kivlo",
+  "transformation": "Old gold watch -> bracelet with large centre stone and diamonds",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B02~p0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B02~p1"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "B13@7"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "B13@8"
+      }
+    ]
+  }
+}

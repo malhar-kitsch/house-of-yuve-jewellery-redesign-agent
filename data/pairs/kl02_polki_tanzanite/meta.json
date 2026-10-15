@@ -1,0 +1,34 @@
+{
+  "id": "kl02_polki_tanzanite",
+  "brand": "kivlo",
+  "transformation": "Polki choker -> polki necklace with tanzanite drops + long earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B12~p0"
+      },
+      {
+        "file": "before_2.jpg",
+        "source": "B01[110,215,555,560]"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B01[110,555,965,1141]"
+      }
+    ],
+    "process": [
+      {
+        "file": "process_1.jpg",
+        "source": "B11~p0"
+      },
+      {
+        "file": "process_2.jpg",
+        "source": "B11~p1"
+      }
+    ]
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "kl10_bangles_with_diamonds",
+  "brand": "kivlo",
+  "transformation": "Four gold bangles -> bangles with diamond accents",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B21~p0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B21~p1"
+      }
+    ]
+  }
+}

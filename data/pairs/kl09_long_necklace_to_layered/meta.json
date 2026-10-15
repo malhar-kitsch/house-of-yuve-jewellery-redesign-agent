@@ -1,0 +1,20 @@
+{
+  "id": "kl09_long_necklace_to_layered",
+  "brand": "kivlo",
+  "transformation": "Long gold necklace -> layered pearl/kundan haar + earrings",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B20~p0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B20~p1"
+      }
+    ]
+  }
+}

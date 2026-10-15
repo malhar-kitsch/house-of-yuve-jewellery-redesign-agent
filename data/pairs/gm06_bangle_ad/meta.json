@@ -1,0 +1,26 @@
+{
+  "id": "gm06_bangle_ad",
+  "brand": "gewelsbymona",
+  "transformation": "Old bangle -> pearl and ruby kada (from an ad film, possibly AI-generated)",
+  "confidence": "low",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A20@2"
+      }
+    ],
+    "process": [
+      {
+        "file": "process_1.jpg",
+        "source": "A20@5"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A20@7"
+      }
+    ]
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "id": "gm01_patoda_choker",
+  "brand": "gewelsbymona",
+  "transformation": "Old gold necklace -> choker with pearl stringing, meena and Patoda-saree-inspired motifs",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A03"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A06"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A02"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A04"
+      }
+    ],
+    "inspiration": [
+      {
+        "file": "inspiration_1.jpg",
+        "source": "A05"
+      }
+    ]
+  }
+}

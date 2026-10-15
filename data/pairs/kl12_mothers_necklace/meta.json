@@ -1,0 +1,20 @@
+{
+  "id": "kl12_mothers_necklace",
+  "brand": "kivlo",
+  "transformation": "Mother's gold coin necklace -> new necklace (shown worn)",
+  "confidence": "medium - after only shown on person",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B23[60,465,490,1170]"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B23[360,330,1080,1350]"
+      }
+    ]
+  }
+}

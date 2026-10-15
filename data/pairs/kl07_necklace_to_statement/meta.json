@@ -1,0 +1,28 @@
+{
+  "id": "kl07_necklace_to_statement",
+  "brand": "kivlo",
+  "transformation": "Light gold necklace + earrings -> stone-set statement necklace + jhumkas",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "B09~p0"
+      },
+      {
+        "file": "before_2.jpg",
+        "source": "B10~p0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "B10~p1"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "B17@8"
+      }
+    ]
+  }
+}

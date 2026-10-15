@@ -1,0 +1,28 @@
+{
+  "id": "kl01_haar_to_set",
+  "brand": "kivlo",
+  "transformation": "Long gold haar -> enamel/stone statement necklace, earrings and bangle",
+  "confidence": "medium - before only shown inside combined card",
+  "files": {
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A01@3"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A01@5"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "A01@6"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A01@0"
+      }
+    ]
+  }
+}

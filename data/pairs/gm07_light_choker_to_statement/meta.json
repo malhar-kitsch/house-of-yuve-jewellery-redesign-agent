@@ -1,0 +1,44 @@
+{
+  "id": "gm07_light_choker_to_statement",
+  "brand": "gewelsbymona",
+  "transformation": "Light heirloom choker -> heavier statement choker with emerald drops and pearl ghungroos",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A21@3"
+      }
+    ],
+    "process": [
+      {
+        "file": "process_1.jpg",
+        "source": "A21@4"
+      },
+      {
+        "file": "process_2.jpg",
+        "source": "A21@6"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A21@8"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A21@9"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "A21@7"
+      }
+    ],
+    "combined": [
+      {
+        "file": "combined_1.jpg",
+        "source": "A21@11"
+      }
+    ]
+  }
+}

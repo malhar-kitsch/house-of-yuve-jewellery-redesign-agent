@@ -1,0 +1,24 @@
+{
+  "id": "gm02_old_era_necklace",
+  "brand": "gewelsbymona",
+  "transformation": "18kt gold necklace + studs -> multi-strand gemstone bead necklaces with Patoda/enamel pendant",
+  "confidence": "medium - after images look like same post but not confirmed",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A09"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A10"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A11"
+      }
+    ]
+  }
+}

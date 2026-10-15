@@ -1,0 +1,28 @@
+{
+  "id": "gm03_bangle_to_pendant",
+  "brand": "gewelsbymona",
+  "transformation": "Grandmother's 22kt plain bangle -> elaborate kundan pendant on emerald bead + rice pearl strands",
+  "confidence": "high",
+  "files": {
+    "before": [
+      {
+        "file": "before_1.jpg",
+        "source": "A08@0"
+      }
+    ],
+    "after": [
+      {
+        "file": "after_1.jpg",
+        "source": "A08@4"
+      },
+      {
+        "file": "after_2.jpg",
+        "source": "A08@6"
+      },
+      {
+        "file": "after_3.jpg",
+        "source": "A08@10"
+      }
+    ]
+  }
+}
