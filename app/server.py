@@ -1,20 +1,37 @@
-import io, time, uuid
+import base64, io, os, secrets, time, uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 
-from fastapi import FastAPI, File, Form, HTTPException, UploadFile
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
 from app import agents, usage
 
-OUT = agents.ROOT / "outputs"
-OUT.mkdir(exist_ok=True)
+from app.paths import OUT
+
 app = FastAPI()
+PASSWORD = os.getenv("APP_PASSWORD")
+
+
+@app.middleware("http")
+async def require_password(request: Request, call_next):
+    """Browser login prompt when APP_PASSWORD is set (any username)."""
+    if PASSWORD:
+        ok = False
+        auth = request.headers.get("authorization", "")
+        if auth.startswith("Basic "):
+            try:
+                ok = secrets.compare_digest(base64.b64decode(auth[6:]).decode().split(":", 1)[1], PASSWORD)
+            except Exception:
+                pass
+        if not ok:
+            return Response("Password required", 401, {"WWW-Authenticate": 'Basic realm="House of Yuve"'})
+    return await call_next(request)
 
 
 @app.post("/api/redesign")
@@ -36,8 +53,21 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
     try:
         plan = await agents.redesign(img, wish, max(1, min(count, 6)), style, engine, out_dir)
     except Exception as e:
-        raise HTTPException(502, f"Gemini error: {str(e)[:400]}")
+        raise HTTPException(502, f"AI error: {str(e)[:400]}")
+    # Send images back inline: on Vercel a later request may land on a different server.
+    for d in plan["designs"]:
+        if d.get("image"):
+            d["image_data"] = _jpeg_data_url(out_dir / d["image"])
     return {"run": run_id, **plan, "usage": usage.summary()}
+
+
+def _jpeg_data_url(path, max_side=1200):
+    # Vercel caps responses at ~4.5MB, so send compact JPEGs (full PNG stays on disk).
+    im = Image.open(path).convert("RGB")
+    im.thumbnail((max_side, max_side))
+    buf = io.BytesIO()
+    im.save(buf, "JPEG", quality=85)
+    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
 
 
 @app.post("/api/keep")

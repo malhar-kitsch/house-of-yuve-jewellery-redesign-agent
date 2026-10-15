@@ -2,9 +2,9 @@
 Gemini is estimated from token counts (prices below, USD per 1M tokens — check
 https://ai.google.dev/gemini-api/docs/pricing). OpenRouter reports the exact cost of each call."""
 import json, threading
-from pathlib import Path
 
-FILE = Path(__file__).resolve().parent.parent / "data" / "usage.json"
+from app.paths import USAGE_FILE as FILE
+
 ALERTS = {"gemini": 4.0, "openrouter": 8.0}  # ≈ ₹350 of ₹500 prepaid; $8 of the $10 key cap
 
 # (input, output) per 1M tokens. Image output tokens are priced higher than text.

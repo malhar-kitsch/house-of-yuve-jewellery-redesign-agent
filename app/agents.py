@@ -11,9 +11,7 @@ from PIL import Image
 
 from app import usage
 
-ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "data"
-KEPT = DATA / "kept"
+from app.paths import DATA, KEPT
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gemini-flash-latest")
 IMAGE_MODEL = os.getenv("IMAGE_MODEL", "gemini-3.1-flash-image")
 OPENROUTER = "https://openrouter.ai/api/v1"
@@ -36,7 +34,7 @@ def load_catalogue():
             "after": folder / p["files"]["after"][0]["file"],
         }
     # Designs the team marked "keep" in the app become examples too.
-    for meta in sorted(KEPT.glob("*/meta.json")):
+    for meta in sorted({*(DATA / "kept").glob("*/meta.json"), *KEPT.glob("*/meta.json")}):
         m = json.loads(meta.read_text())
         out[m["id"]] = {"transformation": m["transformation"], "style": m["style"],
                         "before": meta.parent / "before_1.jpg", "after": meta.parent / "after_1.png"}

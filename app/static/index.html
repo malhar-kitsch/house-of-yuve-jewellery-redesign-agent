@@ -118,7 +118,7 @@ $('go').onclick = async () => {
   $('status').textContent = 'Studying your piece and sketching ideas… (about 30–60 seconds)';
   $('piece').textContent = '';
   $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
-  const fd = new FormData(); fd.append('photo', file); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value);
+  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value);
   try{
     const r = await fetch('/api/redesign', {method:'POST', body:fd});
     const d = await r.json();
@@ -126,7 +126,7 @@ $('go').onclick = async () => {
     $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}`;
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
-        <div class="img">${x.image ? `<a href="/outputs/${d.run}/${x.image}" target="_blank"><img src="/outputs/${d.run}/${x.image}" alt=""></a>` : `<small>${esc(x.error || 'No image')}</small>`}</div>
+        <div class="img">${x.image ? `<img src="${x.image_data}" alt="" onclick="openFull(this.src)">` : `<small>${esc(x.error || 'No image')}</small>`}</div>
         <div class="body">
           <div class="engine">${esc(x.engine_name || '')}</div>
           <h3>${esc(x.title)}</h3>
@@ -156,6 +156,23 @@ $('grid').addEventListener('click', async e => {
   }catch{ b.textContent = 'Could not save — try again'; }
   b.disabled = false;
 });
+// Phone photos can be 10MB+; Vercel accepts ~4.5MB, so resize before upload.
+function shrink(f, max = 1600){
+  return new Promise(res => {
+    const img = new Image();
+    img.onload = () => {
+      const k = Math.min(1, max / Math.max(img.width, img.height));
+      const c = document.createElement('canvas'); c.width = img.width * k; c.height = img.height * k;
+      c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+      c.toBlob(b => res(b || f), 'image/jpeg', 0.9);
+    };
+    img.onerror = () => res(f);
+    img.src = URL.createObjectURL(f);
+  });
+}
+function openFull(src){
+  const w = window.open(); if(w) w.document.write(`<body style="margin:0;background:#111"><img src="${src}" style="max-width:100%;display:block;margin:auto">`);
+}
 function esc(s){return String(s ?? '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 </script>
 </body>
