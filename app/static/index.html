@@ -50,6 +50,7 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 .gold div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:2px 0}
 .tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
 .tags span{font-size:12px;background:#f1e7d3;color:var(--ink);border-radius:999px;padding:2px 9px}
+.fail{color:#b3261e;padding:16px;text-align:center;line-height:1.4}
 .engine{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .keep{margin-top:12px;width:100%;background:none;color:var(--gold);border:1px solid var(--gold);padding:8px 14px;font-size:14px}
 .keep.on{background:var(--gold);color:#fff}
@@ -127,12 +128,12 @@ $('go').onclick = async () => {
   const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
   try{
     const r = await fetch('/api/redesign', {method:'POST', body:fd});
-    const d = await r.json();
+    const d = await r.json().catch(() => ({detail: `Server error (HTTP ${r.status}) with no details.`}));
     if(!r.ok) throw new Error(d.detail || 'Something went wrong');
     $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`;
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
-        <div class="img">${x.image ? `<img src="${x.image_data}" alt="" onclick="openFull(this.src)">` : `<small>${esc(x.error || 'No image')}</small>`}</div>
+        <div class="img">${x.image ? `<img src="${x.image_data}" alt="" onclick="openFull(this.src)">` : `<small class="fail">⚠ ${esc(x.error || 'No image came back and the AI gave no reason.')}</small>`}</div>
         <div class="body">
           <div class="engine">${esc(x.engine_name || '')}</div>
           <h3>${esc(x.title)}</h3>

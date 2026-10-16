@@ -152,6 +152,25 @@ the edges. One photorealistic product photo of the new set only. No text, no lab
 no collage or inset images."""
 
 
+def explain(e: Exception) -> str:
+    """Turn an API error into a plain reason the team can act on."""
+    msg = str(e)
+    low = msg.lower()
+    code = getattr(e, "code", None) or getattr(e, "status_code", None)
+    gemini = "openrouter" not in low
+    if code == 402 or any(w in low for w in ("insufficient credits", "credits are depleted", "prepayment",
+                                              "billing", "key limit exceeded", "limit exceeded")):
+        return ("Out of credits on " + ("Gemini — top up in Google AI Studio billing." if gemini
+                else "OpenRouter — add credits or raise the key limit on openrouter.ai.") + f" ({msg[:150]})")
+    if code == 429 or "resource_exhausted" in low or "quota" in low or "rate limit" in low:
+        return ("Usage limit hit on " + ("Gemini" if gemini else "OpenRouter") +
+                " — either credits/quota are used up or too many requests at once. Wait a minute and retry; "
+                f"if it keeps happening, check credits. ({msg[:150]})")
+    if code in (401, 403) or "api key" in low or "unauthorized" in low:
+        return f"API key problem — the key is missing, wrong or disabled. ({msg[:150]})"
+    return msg[:300]
+
+
 def _img(path_or_bytes):
     return Image.open(path_or_bytes).convert("RGB")
 
@@ -192,11 +211,14 @@ async def render_gemini(photo: Image.Image, d: dict, style: str, out_path: Path)
                                            image_config=types.ImageConfig(aspect_ratio="4:5")),
     )
     usage.record_image(IMAGE_MODEL, resp.usage_metadata)
-    for part in resp.candidates[0].content.parts:
+    cand = (resp.candidates or [None])[0]
+    for part in (cand.content.parts if cand and cand.content and cand.content.parts else []):
         if part.inline_data:
             out_path.write_bytes(part.inline_data.data)
             return out_path.name
-    raise RuntimeError("Model returned no image")
+    reason = getattr(cand, "finish_reason", None) or getattr(resp.prompt_feedback, "block_reason", None)
+    said = " ".join(p.text for p in (cand.content.parts if cand and cand.content and cand.content.parts else []) if p.text)
+    raise RuntimeError(f"Gemini returned no image (reason: {reason or 'not given'})" + (f" — it said: {said[:200]}" if said else ""))
 
 
 def _data_url(img: Image.Image):
@@ -221,9 +243,15 @@ async def render_openrouter(model: str, extra: dict, photo: Image.Image, d: dict
                             json={"model": model, "prompt": prompt, "aspect_ratio": "3:4", **extra,
                                   "input_references": [{"type": "image_url", "image_url": {"url": _data_url(x)}}
                                                        for x in refs]})
-    body = r.json()
+    try:
+        body = r.json()
+    except ValueError:
+        body = {}
     if r.status_code != 200 or not body.get("data"):
-        raise RuntimeError(body.get("error", {}).get("message", f"HTTP {r.status_code}"))
+        err = RuntimeError(f"OpenRouter ({model}): " + str(body.get("error", {}).get("message")
+                           or f"no image returned, HTTP {r.status_code}"))
+        err.code = r.status_code
+        raise err
     usage.record_openrouter(body.get("usage", {}).get("cost", 0))
     out_path.write_bytes(base64.b64decode(body["data"][0]["b64_json"]))
     return out_path.name
@@ -251,7 +279,7 @@ async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: st
     )
     for c, r in zip(cards, results):
         if isinstance(r, Exception):
-            c["error"] = str(r)[:300]
+            c["error"] = explain(r)
         else:
             c["image"] = r
     plan["designs"] = cards

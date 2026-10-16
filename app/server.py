@@ -53,7 +53,7 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
     try:
         plan = await agents.redesign(img, wish, max(1, min(count, 6)), style, engine, out_dir, max(grams, 0))
     except Exception as e:
-        raise HTTPException(502, f"AI error: {str(e)[:400]}")
+        raise HTTPException(502, f"Couldn't create designs: {agents.explain(e)}")
     # Send images back inline: on Vercel a later request may land on a different server.
     for d in plan["designs"]:
         if d.get("image"):
