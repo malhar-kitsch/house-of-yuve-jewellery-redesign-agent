@@ -72,6 +72,17 @@ Style direction: {style_brief}
 
 Customer's wish (may be empty): {wish}
 
+Gold weight: {grams}
+
+GOLD BUDGET — use ALL of the customer's gold. If the main new piece needs less gold than the old piece
+(e.g. a 20 g necklace becoming 4 g earrings), turn the leftover into matching companion pieces — earrings,
+ring, pendant, maang tikka, bracelet, a second lighter chain — or make the main piece fuller, so the split
+adds up to roughly the total. Never leave gold unaccounted for.
+
+ADD ELEMENTS — like our reference projects, every design must add at least 2 new materials to make it richer
+and more elegant: pearls / rice pearls, gemstone beads (emerald, ruby, coral, onyx), kundan, polki,
+lab-grown diamonds, coloured stones, enamel / meenakari, ghungroo drops. Choose ones that suit the style.
+
 Reference transformations we have photos of (id [style]: what happened). Prefer references whose style
 matches the style direction; "kept_" ones are past designs our team approved:
 {catalogue}
@@ -79,13 +90,16 @@ matches the style direction; "kept_" ones are past designs our team approved:
 Return JSON only:
 {{
   "piece": {{"type": "...", "description": "what you see: motifs, stones, finish, approx size/weight feel",
+             "gold_grams": "estimated total gold weight in grams (use the customer's figure if given)",
              "size": "realistic real-world dimensions of each element in cm, judged from what kind of piece it is (e.g. a chandbali earring is ~4-6 cm wide)"}},
   "designs": [
     {{
       "title": "short name",
       "idea": "1-2 sentences for the customer: what becomes what and why it's modern",
       "reuse": "which existing elements are kept and where they go",
-      "render_prompt": "detailed visual description of the NEW piece for an image model: form, layout, materials added, finish, colours",
+      "gold_split": [{{"piece": "e.g. main pendant necklace", "grams": 12}}, {{"piece": "matching earrings", "grams": 5}}],
+      "added": ["new materials added, e.g. rice pearls", "lab-grown diamonds"],
+      "render_prompt": "detailed visual description of the NEW piece(s) for an image model: the main piece AND every companion piece from gold_split, form, layout, the added materials, finish, colours",
       "scale": "real-world size of the new piece and of each reused element in it, in cm (reused elements keep their original size)",
       "examples": ["2 reference ids from the list whose style best fits this design"]
     }}
@@ -98,8 +112,8 @@ STYLES = {
     "modern": {
         "brief": "MODERN & MINIMAL. Lightweight, wearable every day or to the office. Clean lines, negative space, "
                  "deconstructed single motifs, asymmetry, fine chains, cuffs, ear climbers, stackable rings, sleek "
-                 "pendants. Add little: maybe one stone, a few pearls or a matte/brushed finish. Avoid heavy bridal "
-                 "looks, layered haars, dense kundan and lots of beads.",
+                 "pendants. Additions stay delicate but present: lab-grown diamond accents, a few pearls, one coloured "
+                 "stone, a fine bead strand, enamel detail. Avoid heavy bridal looks, layered haars and dense kundan.",
         "render": "Use the reference pairs ONLY to see how old elements were reused and for photo quality. The new "
                   "piece must look modern, minimal and light — NOT heavy or bridal like the references. Photograph it "
                   "on a plain light neutral background or a simple modern stand.",
@@ -123,14 +137,18 @@ gold tone and stones so the customer can see their own jewellery was reused, not
 New design: {title}
 {render_prompt}
 
+Pieces to show together as one set (all made from the customer's gold): {pieces}
+New materials that MUST be clearly visible: {added}
+
 TRUE SCALE — very important: {scale}
 Reused elements must keep their original real-world size. Small pieces (e.g. an earring reused as a pendant)
 must look small relative to the chain/strands, the bust or the wrist — never enlarge them.
+Arrange the set like a studio set photo: main piece on its display, companion pieces beside it.
 Display it so the size is obvious: necklaces and chokers on a neck bust, bracelets/bangles on a wrist form or
 bangle stand, earrings on an earring stand, rings on a ring cone.
 
 Framing: the ENTIRE piece must be fully visible with clear empty margin on every side — nothing cropped at
-the edges. One photorealistic product photo of the new piece only. No text, no labels, no people, no borders,
+the edges. One photorealistic product photo of the new set only. No text, no labels, no people, no borders,
 no collage or inset images."""
 
 
@@ -138,9 +156,10 @@ def _img(path_or_bytes):
     return Image.open(path_or_bytes).convert("RGB")
 
 
-async def design(photo: Image.Image, wish: str, n: int, style: str):
+async def design(photo: Image.Image, wish: str, n: int, style: str, grams: float = 0):
     catalogue = "\n".join(f"- {k} [{v['style']}]: {v['transformation']}" for k, v in CATALOGUE.items())
-    prompt = DESIGNER_PROMPT.format(style_brief=STYLES[style]["brief"], wish=wish or "(none)", catalogue=catalogue, n=n)
+    prompt = DESIGNER_PROMPT.format(style_brief=STYLES[style]["brief"], wish=wish or "(none)", catalogue=catalogue, n=n,
+                                    grams=f"{grams:g} g (given by the customer)" if grams else "not given — estimate it from the photo")
     resp = await client.aio.models.generate_content(
         model=TEXT_MODEL,
         contents=[photo, prompt],
@@ -155,8 +174,10 @@ async def design(photo: Image.Image, wish: str, n: int, style: str):
 
 
 def _render_prompt(d, style):
+    pieces = "; ".join(f"{g.get('piece')} (~{g.get('grams')} g)" for g in d.get("gold_split", [])) or d["title"]
     return RENDER_PROMPT.format(style_render=STYLES[style]["render"], title=d["title"],
-                                render_prompt=d["render_prompt"], scale=d.get("scale", ""))
+                                render_prompt=d["render_prompt"], scale=d.get("scale", ""),
+                                pieces=pieces, added=", ".join(d.get("added", [])) or "pearls or stones that suit the design")
 
 
 async def render_gemini(photo: Image.Image, d: dict, style: str, out_path: Path):
@@ -218,8 +239,8 @@ ENGINES = {
 COMPARE = ["gemini", "gpt", "flux"]
 
 
-async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: str, out_dir: Path):
-    plan = await design(photo, wish, n, style)
+async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: str, out_dir: Path, grams: float = 0):
+    plan = await design(photo, wish, n, style, grams)
     plan["style"] = style
     engines = COMPARE if engine == "compare" else [engine]
     # One card per (design, engine) so each render can be compared and kept on its own.

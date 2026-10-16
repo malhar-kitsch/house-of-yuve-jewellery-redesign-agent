@@ -36,7 +36,7 @@ async def require_password(request: Request, call_next):
 
 @app.post("/api/redesign")
 async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: int = Form(4),
-                   style: str = Form("modern"), engine: str = Form("gemini")):
+                   style: str = Form("modern"), engine: str = Form("gemini"), grams: float = Form(0)):
     if style not in agents.STYLES:
         raise HTTPException(400, "Unknown style")
     if engine != "compare" and engine not in agents.ENGINES:
@@ -51,7 +51,7 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
     out_dir.mkdir()
     img.save(out_dir / "original.jpg", quality=92)
     try:
-        plan = await agents.redesign(img, wish, max(1, min(count, 6)), style, engine, out_dir)
+        plan = await agents.redesign(img, wish, max(1, min(count, 6)), style, engine, out_dir, max(grams, 0))
     except Exception as e:
         raise HTTPException(502, f"AI error: {str(e)[:400]}")
     # Send images back inline: on Vercel a later request may land on a different server.

@@ -45,6 +45,11 @@ button:disabled{opacity:.5;cursor:default}
 .card .reuse{color:var(--muted);font-size:13px}
 .ex{display:flex;gap:6px;margin-top:10px}
 .ex img{width:44px;height:44px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
+input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;background:#fff;width:110px}
+.gold{margin-top:8px;font-size:13px}
+.gold div{display:flex;justify-content:space-between;border-bottom:1px dotted var(--line);padding:2px 0}
+.tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.tags span{font-size:12px;background:#f1e7d3;color:var(--ink);border-radius:999px;padding:2px 9px}
 .engine{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .keep{margin-top:12px;width:100%;background:none;color:var(--gold);border:1px solid var(--gold);padding:8px 14px;font-size:14px}
 .keep.on{background:var(--gold);color:#fff}
@@ -66,6 +71,7 @@ button:disabled{opacity:.5;cursor:default}
         <div class="seg" id="style" role="radiogroup" aria-label="Style">
           <button type="button" class="on" data-v="modern">Modern</button><button type="button" data-v="traditional">Traditional</button>
         </div>
+        <input type="number" id="grams" min="0" step="0.5" placeholder="Gold (g)" title="Gold weight in grams, if known">
         <select id="count"><option value="1">1 design</option><option value="2">2 designs</option><option value="4" selected>4 designs</option><option value="6">6 designs</option></select>
         <select id="engine" title="Image AI">
           <option value="gemini">Gemini · ~₹8</option>
@@ -118,12 +124,12 @@ $('go').onclick = async () => {
   $('status').textContent = 'Studying your piece and sketching ideas… (about 30–60 seconds)';
   $('piece').textContent = '';
   $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
-  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value);
+  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
   try{
     const r = await fetch('/api/redesign', {method:'POST', body:fd});
     const d = await r.json();
     if(!r.ok) throw new Error(d.detail || 'Something went wrong');
-    $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}`;
+    $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`;
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
         <div class="img">${x.image ? `<img src="${x.image_data}" alt="" onclick="openFull(this.src)">` : `<small>${esc(x.error || 'No image')}</small>`}</div>
@@ -132,6 +138,8 @@ $('go').onclick = async () => {
           <h3>${esc(x.title)}</h3>
           <p>${esc(x.idea)}</p>
           <div class="reuse">${esc(x.reuse || '')}</div>
+          ${(x.gold_split || []).length ? `<div class="gold">${x.gold_split.map(g => `<div><span>${esc(g.piece)}</span><span>~${esc(g.grams)} g</span></div>`).join('')}</div>` : ''}
+          ${(x.added || []).length ? `<div class="tags">${x.added.map(a => `<span>+ ${esc(a)}</span>`).join('')}</div>` : ''}
           <div class="ex" title="Reference projects used">${x.examples.map(e => `<img src="/examples/${e}/after" alt="${e}">`).join('')}</div>
           ${x.image ? `<button class="keep" data-run="${d.run}" data-i="${i + 1}">♡ Keep as example</button>` : ''}
         </div>
