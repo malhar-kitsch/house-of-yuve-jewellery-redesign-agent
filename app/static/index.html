@@ -72,6 +72,9 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 .run img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#efe8da}
 .run div{padding:8px 10px;font-size:13px;line-height:1.35}
 .run small{color:var(--muted)}
+.weightbox{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;font-size:14px;margin-bottom:10px}
+.weightbox .big{font:600 22px "Cormorant Garamond",serif;color:var(--gold)}
+.link{background:none;border:0;padding:0;color:var(--teal);font-size:13px;text-decoration:underline;cursor:pointer}
 .inputs{font-size:13px;color:var(--muted);margin-top:6px}
 .shimmer{background:linear-gradient(90deg,#efe8da 25%,#f7f1e4 50%,#efe8da 75%);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes sh{to{background-position:-200% 0}}
@@ -89,13 +92,14 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
     <div class="drop" id="drop"><div>Tap or drop a photo<br><small>JPG / PNG</small></div><input type="file" id="file" accept="image/*" hidden></div>
     <div class="panel">
       <label>Your gold</label>
+      <div class="weightbox" id="weighed">Add a photo and our AI will estimate how much gold is in it.</div>
+      <div class="hint" style="margin:-4px 0 10px"><button type="button" class="link" id="exactBtn">Know the exact weight?</button>
+        <span id="exactRow" hidden><input type="number" id="grams" min="0" step="0.1" placeholder="Exact grams" title="Weighed gold weight in grams — replaces the AI estimate"> g</span></div>
       <div class="row" style="margin-top:0">
-        <input type="number" id="grams" min="0" step="0.5" placeholder="Weight (g)" title="Gold weight in grams, if known">
         <select id="karat" title="Purity"><option value="24">24K</option><option value="22" selected>22K</option><option value="18">18K</option><option value="14">14K</option></select>
         <span class="hint" style="margin:0">24K today ₹</span><input type="number" id="rate" min="0" step="100" placeholder="per 10 g" title="Today's 24K gold rate per 10 g — fetched live, edit if your rate differs"><span class="hint" style="margin:0">per 10 g</span>
       </div>
       <div class="hint" id="rateSrc"></div>
-      <div class="worth" id="weighed"></div>
       <div class="worth" id="worth"></div>
 
       <div class="q"><label>What would you like to do?</label>
@@ -165,23 +169,25 @@ $('goal').addEventListener('change', () => {
   $('wishLabel').innerHTML = g === 'idea' ? 'Describe what you have in mind' : 'Anything else? <span style="color:var(--muted);font-weight:400">(optional)</span>';
   $('wish').placeholder = g === 'idea' ? 'e.g. a layered necklace with a big centre pendant and matching jhumkas' : 'e.g. keep the peacock motif, add emeralds';
 });
-// Weight read from the photo; cleared as soon as someone types the real weight.
+// Weight: the AI's estimate from the photo, unless someone types the exact weighed figure.
 let weighed = null;
 const rate24 = () => +$('rate').value / 10;
+function weight(){
+  const exact = +$('grams').value;
+  if(exact) return {best: exact, lo: exact, hi: exact, exact: true};
+  return weighed ? {best: weighed.best, lo: weighed.total_low, hi: weighed.total_high} : null;
+}
 function updateWorth(){
-  const g = +$('grams').value, r = rate24() * PURITY[$('karat').value];
-  const [lo, hi] = weighed ? [weighed.total_low, weighed.total_high] : [g * 0.95, g * 1.05];
+  const w = weight(), r = rate24() * PURITY[$('karat').value];
+  const [g, lo, hi] = w ? [w.best, w.lo, w.hi] : [0];
   $('worth').innerHTML = g && r ? `Your gold is worth about <b>${inr(lo * r * KEEP)} – ${inr(hi * r * KEEP)}</b> after a 5% exchange deduction`
       + ` <span class="hint">(market value ${inr(lo * r)} – ${inr(hi * r)} at ${inr(r * 10)} per 10 g of ${$('karat').value}K)</span>.`
-    : r ? '<span class="hint">Add a photo and we\'ll estimate the weight, or type it in if you know it.</span>' : '';
+    : '';
   const t = +$('topup').value;
   $('topupHint').textContent = t && r ? `≈ ${(t / r).toFixed(1)} g of extra gold, or richer stones` : '';
 }
 ['grams', 'karat', 'rate', 'topup'].forEach(id => $(id).addEventListener('input', updateWorth));
-$('grams').addEventListener('input', () => {
-  if(!weighed) return;
-  weighed = null; $('weighed').innerHTML = '<span class="hint">Using the weight you entered.</span>'; updateWorth();
-});
+$('exactBtn').onclick = () => { $('exactRow').hidden = false; $('exactBtn').hidden = true; $('grams').focus(); };
 $('karat').addEventListener('change', updateWorth);
 fetch('/api/gold-rate').then(r => r.json()).then(d => {
   if(!d.rate || $('rate').value) return;
@@ -189,20 +195,20 @@ fetch('/api/gold-rate').then(r => r.json()).then(d => {
 }).catch(() => { $('rateSrc').textContent = "Couldn't fetch today's rate — type it in."; });
 
 async function weigh(f){
-  weighed = null; $('grams').value = ''; updateWorth();
-  $('weighed').innerHTML = '<span class="hint">Reading your piece to estimate the gold weight…</span>';
+  weighed = null; updateWorth();
+  $('weighed').innerHTML = 'Reading your piece to estimate the gold weight…';
   const fd = new FormData(); fd.append('photo', await shrink(f), 'photo.jpg');
   try{
     const r = await fetch('/api/weigh', {method:'POST', body:fd});
     const d = await r.json();
     if(!r.ok) throw new Error(d.detail);
     if(f !== file) return;  // a newer photo was picked meanwhile
-    weighed = d; $('grams').value = d.best;
-    $('weighed').innerHTML = `<b>From the photo:</b> ${d.pieces.map(p => `${esc(p.type)} (~${p.low}–${p.high} g)`).join(' + ')}. `
-      + `Estimated total <b>~${d.best} g</b>. <span class="hint">Change it if you know the exact weight.</span>`;
+    weighed = d;
+    $('weighed').innerHTML = `AI estimate of gold weight: <span class="big">${d.total_low} – ${d.total_high} g</span>`
+      + `<div class="hint">${d.pieces.map(p => `${esc(p.type)}: ${p.low}–${p.high} g`).join(' · ')}</div>`;
     updateWorth();
   }catch(e){
-    $('weighed').innerHTML = `<span class="hint">Couldn't estimate the weight (${esc(e.message || 'unknown error')}) — type it in, or we'll estimate while designing.</span>`;
+    $('weighed').innerHTML = `Couldn't estimate the weight (${esc(e.message || 'unknown error')}). We'll estimate it while designing, or enter the exact weight below.`;
   }
 }
 
@@ -233,9 +239,9 @@ $('go').onclick = async () => {
   $('status').textContent = 'Studying your piece and sketching ideas… (about 30–60 seconds)';
   $('piece').textContent = '';
   $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
-  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', chosen('style')[0]); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
-  fd.append('karat', $('karat').value); fd.append('rate24', rate24() || 0); fd.append('grams_estimated', !!weighed);
-  if(weighed){ fd.append('grams_low', weighed.total_low); fd.append('grams_high', weighed.total_high); } fd.append('goal', chosen('goal')[0]);
+  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', chosen('style')[0]); fd.append('engine', $('engine').value); fd.append('grams', weight()?.best || 0);
+  fd.append('karat', $('karat').value); fd.append('rate24', rate24() || 0); const w = weight(); fd.append('grams_estimated', !!w && !w.exact);
+  if(w && !w.exact){ fd.append('grams_low', w.lo); fd.append('grams_high', w.hi); } fd.append('goal', chosen('goal')[0]);
   fd.append('topup', $('topup').value || 0); fd.append('pieces', chosen('pieces').join(',')); fd.append('set_size', chosen('setSize')[0]);
   fd.append('occasion', chosen('occasion')[0]);
   try{
@@ -255,7 +261,7 @@ const LABELS = {own: 'Redesign with my gold', topup: 'Top up', idea: 'Own idea',
   set: 'one matching set', multi: 'multiple pieces', everyday: 'everyday', casual: 'casual & small events', festive: 'festive', ceremonial: 'ceremonial & bridal'};
 function inputsText(i){
   if(!i) return '';
-  return [i.grams ? `${i.grams} g${i.grams_estimated ? ' (from photo)' : ''} · ${i.karat}K` : `${i.karat}K`,
+  return [i.grams ? `${i.grams_estimated ? `~${i.grams} g (AI estimate)` : `${i.grams} g (weighed)`} · ${i.karat}K` : `${i.karat}K`,
     LABELS[i.goal] + (i.goal === 'topup' && i.topup ? ` ${inr(i.topup)}` : ''),
     (i.pieces || []).join(', ') || null, LABELS[i.set_size], i.style, LABELS[i.occasion],
     i.rate24 ? `rate ${inr(i.rate24 * 10)}/10 g` : null, i.wish ? `“${i.wish}”` : null].filter(Boolean).join(' · ');
@@ -264,7 +270,7 @@ function inputsText(i){
 function show(d, fromHistory){
     const est = d.estimate;
     $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`
-      + (est ? `<div class="worth">Your ~${est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> after a ${est.deduction_pct ?? 5}% exchange deduction (market value ${range(est.market || [est.low, est.high])} at ${inr(est.gram_rate * 10)} per 10 g${d.inputs?.grams_estimated || !d.inputs?.grams ? ' · weight estimated from the photo, so the range is wide' : ''}).</div>` : '')
+      + (est ? `<div class="worth">Your ${est.grams_range && est.grams_range[0] !== est.grams_range[1] ? `${est.grams_range[0]} – ${est.grams_range[1]}` : est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> after a ${est.deduction_pct ?? 5}% exchange deduction (market value ${range(est.market || [est.low, est.high])} at ${inr(est.gram_rate * 10)} per 10 g${d.inputs?.grams_estimated || !d.inputs?.grams ? ' · weight estimated from the photo, so the range is wide' : ''}).</div>` : '')
       + (fromHistory ? `<div class="inputs"><b>Choices:</b> ${esc(inputsText(d.inputs))}</div>` : '');
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
@@ -280,7 +286,7 @@ function show(d, fromHistory){
             ${x.cost.new_gold_grams ? `<div><span>New gold (${x.cost.new_gold_grams} g)</span><span>${inr(x.cost.new_gold)}</span></div>` : ''}
             <div><span>Stones &amp; additions</span><span>${range(x.cost.additions)}</span></div>
             <div><span>Making charges</span><span>${range(x.cost.making)}</span></div>
-            ${x.cost.deduction ? `<div><span>Exchange deduction on your gold (5%)</span><span>${inr(x.cost.deduction)}</span></div>` : ''}
+            ${x.cost.deduction ? `<div><span>Exchange deduction on your gold (5%)</span><span>${[].concat(x.cost.deduction).length > 1 ? range(x.cost.deduction) : inr(x.cost.deduction)}</span></div>` : ''}
             <div style="color:var(--muted)"><span>Finished piece worth</span><span>${range(x.cost.piece_value)}</span></div>
           </div>` : ''}
           ${(x.added || []).length ? `<div class="tags">${x.added.map(a => `<span>+ ${esc(a)}</span>`).join('')}</div>` : ''}

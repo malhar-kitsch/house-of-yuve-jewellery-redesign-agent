@@ -351,7 +351,7 @@ async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: st
                             **pricing.old_gold(old_g, karat, b["rate24"], estimated=not grams or b.get("grams_estimated", False),
                                               grams_range=b.get("grams_range"))}
         for d in plan["designs"]:
-            d["cost"] = pricing.design_cost(d, old_g, karat, b["rate24"])
+            d["cost"] = pricing.design_cost(d, old_g, karat, b["rate24"], plan["estimate"]["grams_range"])
     engines = COMPARE if engine == "compare" else [engine]
     # One card per (design, engine) so each render can be compared and kept on its own.
     cards = [{**d, "engine": e, "engine_name": ENGINES[e][0]} for d in plan["designs"][:n] for e in engines]

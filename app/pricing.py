@@ -46,31 +46,35 @@ def per_gram(rate24, karat):
 
 
 def old_gold(grams, karat, rate24, estimated, grams_range=None):
-    """Value of the customer's gold. A guessed weight gets a wider range (the photo's weight range if we have it)."""
+    """Value of the customer's gold. A guessed weight is a range (the photo's weight range if we have it)."""
     gram = per_gram(rate24, karat)
-    spread = 0.2 if estimated else 0.05
+    spread = 0.2 if estimated else 0
     low, high = grams_range or (grams * (1 - spread), grams * (1 + spread))
     keep = 1 - EXCHANGE_DEDUCTION
-    return {"grams": grams, "karat": karat, "value": round(grams * gram * keep), "deduction_pct": round(EXCHANGE_DEDUCTION * 100),
+    return {"grams": grams, "grams_range": [round(low, 1), round(high, 1)], "karat": karat,
+            "value": round(grams * gram * keep), "deduction_pct": round(EXCHANGE_DEDUCTION * 100),
             "market": [round(low * gram), round(high * gram)], "low": round(low * gram * keep), "high": round(high * gram * keep)}
 
 
-def design_cost(d, old_grams, karat, rate24):
-    """Rough cost of one redesign: new gold + additions + making + the exchange deduction on the customer's gold."""
-    total_g = sum(_num(g.get("grams")) for g in d.get("gold_split", []))
+def design_cost(d, old_grams, karat, rate24, grams_range=None):
+    """Rough cost of one redesign: new gold + additions + making + the exchange deduction on the customer's gold.
+    When the customer's weight is a range, the gold-driven parts (making, deduction, piece value) are ranges too."""
+    total_g = sum(_num(g.get("grams")) for g in d.get("gold_split", [])) or old_grams
     new_g = max(0.0, total_g - old_grams)
     gram = per_gram(rate24, karat)
-    gold = total_g * gram
     extra_gold = new_g * gram
     add = d.get("additions_cost") or {}
     add_low, add_high = _num(add.get("low")), _num(add.get("high"))
-    make_low, make_high = gold * MAKING[0], gold * MAKING[1]
-    deduction = min(old_grams, total_g or old_grams) * gram * EXCHANGE_DEDUCTION
-    low = extra_gold + add_low + make_low + deduction
-    high = extra_gold + add_high + make_high + deduction
+    own = grams_range or (old_grams, old_grams)
+    # The design was planned on the best-guess weight; shift its gold by how far the real weight may differ.
+    gold = [max(total_g + w - old_grams, 0) * gram for w in own]
+    making = [gold[0] * MAKING[0], gold[1] * MAKING[1]]
+    deduction = [w * gram * EXCHANGE_DEDUCTION for w in own]
+    pay = [extra_gold + add_low + making[0] + deduction[0], extra_gold + add_high + making[1] + deduction[1]]
     return {"total_grams": round(total_g, 1), "new_gold_grams": round(new_g, 1), "new_gold": round(extra_gold),
-            "additions": [round(add_low), round(add_high)], "making": [round(make_low), round(make_high)], "deduction": round(deduction),
-            "pay": [round(low), round(high)], "piece_value": [round(gold + add_low + make_low), round(gold + add_high + make_high)]}
+            "additions": [round(add_low), round(add_high)], "making": [round(x) for x in making],
+            "deduction": [round(x) for x in deduction], "pay": [round(x) for x in pay],
+            "piece_value": [round(gold[0] + add_low + making[0]), round(gold[1] + add_high + making[1])]}
 
 
 def _num(x):
