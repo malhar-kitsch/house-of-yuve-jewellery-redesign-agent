@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>House of Yuve Redesign</title>
+<title>House of Yuve AI Estimator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -13,6 +13,7 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Inter,system-u
 main{max-width:1100px;margin:0 auto;padding:32px 16px 64px}
 h1{font:600 40px/1.1 "Cormorant Garamond",serif;margin:0 0 4px}
 h1 span{color:var(--gold)}
+.eyebrow{font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);margin-bottom:6px}
 .sub{color:var(--muted);margin:0 0 28px}
 .top{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start}
 @media(max-width:760px){.top{grid-template-columns:1fr}}
@@ -83,8 +84,9 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 <body>
 <main>
   <div class="head"><div>
-    <h1>Old gold, <span>new story</span></h1>
-    <p class="sub">Upload a photo of an old piece. We'll suggest modern redesigns that reuse your gold — no melting.</p>
+    <div class="eyebrow">House of Yuve</div>
+    <h1>AI Gold Price Estimator <span>&amp; Redesigner</span></h1>
+    <p class="sub">Upload a photo of your old gold. Our AI estimates its weight and value at today's rate, then designs new pieces from it — no melting.</p>
   </div><button class="histbtn" id="histBtn">History</button></div>
   <section class="history" id="history" hidden><h2>Past designs</h2><div class="runs" id="runs"></div></section>
 
