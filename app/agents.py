@@ -348,7 +348,8 @@ async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: st
     karat, rate = b.get("karat", "22"), b.get("rate", 0)
     if rate and old_g:
         plan["estimate"] = {"rate24": b["rate24"], "gram_rate": round(rate), "topup": b.get("topup", 0),
-                            **pricing.old_gold(old_g, karat, b["rate24"], estimated=not grams or b.get("grams_estimated", False))}
+                            **pricing.old_gold(old_g, karat, b["rate24"], estimated=not grams or b.get("grams_estimated", False),
+                                              grams_range=b.get("grams_range"))}
         for d in plan["designs"]:
             d["cost"] = pricing.design_cost(d, old_g, karat, b["rate24"])
     engines = COMPARE if engine == "compare" else [engine]

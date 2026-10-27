@@ -43,12 +43,12 @@ def per_gram(rate24, karat):
     return rate24 * PURITY.get(karat, PURITY["22"])
 
 
-def old_gold(grams, karat, rate24, estimated):
-    """Value of the customer's gold. A guessed weight gets a wider range."""
-    value = grams * per_gram(rate24, karat)
+def old_gold(grams, karat, rate24, estimated, grams_range=None):
+    """Value of the customer's gold. A guessed weight gets a wider range (the photo's weight range if we have it)."""
+    gram = per_gram(rate24, karat)
     spread = 0.2 if estimated else 0.05
-    return {"grams": grams, "karat": karat, "value": round(value),
-            "low": round(value * (1 - spread)), "high": round(value * (1 + spread))}
+    low, high = grams_range or (grams * (1 - spread), grams * (1 + spread))
+    return {"grams": grams, "karat": karat, "value": round(grams * gram), "low": round(low * gram), "high": round(high * gram)}
 
 
 def design_cost(d, old_grams, karat, rate24):

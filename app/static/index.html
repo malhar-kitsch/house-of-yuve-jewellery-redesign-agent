@@ -232,7 +232,8 @@ $('go').onclick = async () => {
   $('piece').textContent = '';
   $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
   const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', chosen('style')[0]); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
-  fd.append('karat', $('karat').value); fd.append('rate24', rate24() || 0); fd.append('grams_estimated', !!weighed); fd.append('goal', chosen('goal')[0]);
+  fd.append('karat', $('karat').value); fd.append('rate24', rate24() || 0); fd.append('grams_estimated', !!weighed);
+  if(weighed){ fd.append('grams_low', weighed.total_low); fd.append('grams_high', weighed.total_high); } fd.append('goal', chosen('goal')[0]);
   fd.append('topup', $('topup').value || 0); fd.append('pieces', chosen('pieces').join(',')); fd.append('set_size', chosen('setSize')[0]);
   fd.append('occasion', chosen('occasion')[0]);
   try{

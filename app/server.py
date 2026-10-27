@@ -59,7 +59,7 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
                    style: str = Form("modern"), engine: str = Form("gemini"), grams: float = Form(0),
                    karat: str = Form("22"), goal: str = Form("own"), topup: float = Form(0), pieces: str = Form(""),
                    set_size: str = Form("any"), occasion: str = Form(""), rate24: float = Form(0),
-                   grams_estimated: bool = Form(False)):
+                   grams_estimated: bool = Form(False), grams_low: float = Form(0), grams_high: float = Form(0)):
     if style not in agents.STYLES:
         raise HTTPException(400, "Unknown style")
     if engine != "compare" and engine not in agents.ENGINES:
@@ -75,7 +75,8 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
     brief = {"karat": karat, "goal": goal, "topup": max(topup, 0) if goal == "topup" else 0,
              "pieces": [x for x in pieces.split(",") if x in agents.PIECES], "set_size": set_size,
              "occasion": occasion, "rate24": rate24, "rate": pricing.per_gram(rate24, karat),
-             "grams_estimated": grams_estimated and grams > 0}
+             "grams_estimated": grams_estimated and grams > 0,
+             "grams_range": (grams_low, grams_high) if grams_estimated and 0 < grams_low <= grams <= grams_high else None}
     run_id = time.strftime("%Y%m%d-%H%M%S-", time.gmtime()) + uuid.uuid4().hex[:4]
     out_dir = OUT / run_id
     out_dir.mkdir()
