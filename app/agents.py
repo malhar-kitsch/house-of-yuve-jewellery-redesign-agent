@@ -86,6 +86,7 @@ GOLD BUDGET — use ALL of the customer's gold (plus any new gold the goal allow
 (e.g. a 20 g necklace becoming 4 g earrings), turn the leftover into matching companion pieces — earrings,
 ring, pendant, maang tikka, bracelet, a second lighter chain — or make the main piece fuller, so the split
 adds up to roughly the total. Never leave gold unaccounted for.
+{piece_rule}
 
 ADD ELEMENTS — like our reference projects, every design must add at least 2 new materials to make it richer
 and more elegant: pearls / rice pearls, gemstone beads (emerald, ruby, coral, onyx), kundan, polki,
@@ -126,17 +127,25 @@ STYLES = {
                  "deconstructed single motifs, asymmetry, fine chains, cuffs, ear climbers, stackable rings, sleek "
                  "pendants. Additions stay delicate but present: lab-grown diamond accents, a few pearls, one coloured "
                  "stone, a fine bead strand, enamel detail. Avoid heavy bridal looks, layered haars and dense kundan.",
-        "render": "Use the reference pairs ONLY to see how old elements were reused and for photo quality. The new "
-                  "piece must look modern, minimal and light — NOT heavy or bridal like the references. Photograph it "
-                  "on a plain light neutral background or a simple modern stand.",
+        "render": "Use the reference pairs ONLY to see how old elements were reused. The new piece must look "
+                  "modern, minimal and light — NOT heavy or bridal like the references.",
     },
     "traditional": {
         "brief": "TRADITIONAL & HERITAGE. Festive and bridal: kundan, polki, temple work, meenakari, pearls, emerald/"
                  "ruby bead strands, statement chokers and haars, matching earrings — like the reference projects.",
-        "render": "Match the AFTER images' style, level of craftsmanship and their photography (clean studio product "
-                  "shot, soft light, dark teal velvet bust or plain neutral background).",
+        "render": "Match the AFTER images' style and level of craftsmanship (but not their backgrounds).",
     },
 }
+
+# One photo look for every image, so all results feel like the same brand.
+HOUSE_PHOTO = """HOUSE PHOTO STYLE — identical for every image we make:
+- A REAL photograph from a full-frame camera with a 100mm macro lens. NOT a 3D render, NOT CGI, NOT an illustration.
+  Real gold: natural reflections, fine hand-made detail, tiny real-world imperfections, true-to-life colour.
+- Seamless matte light-grey studio backdrop (soft mid-grey, about #cfcfcf), evenly lit, filling the whole frame.
+- Soft diffused light from the top left, gentle natural shadow under each piece.
+- Displays all in the same matte light-grey velvet: necklaces, chokers and haars on a neck bust; earrings on a
+  small earring stand beside it; bangles and bracelets on a wrist form or bangle stand; rings on a ring cone.
+- Nothing else in the frame: no marble, no fabric drapes, no flowers, no leaves, no props, no coloured backgrounds."""
 
 RENDER_PROMPT = """You are rendering a jewellery redesign for an upcycling studio.
 
@@ -150,14 +159,14 @@ New design: {title}
 {render_prompt}
 
 Pieces to show together as one set (all made from the customer's gold): {pieces}
-New materials that MUST be clearly visible: {added}
+{allowed}New materials that MUST be clearly visible: {added}
 
 TRUE SCALE — very important: {scale}
 Reused elements must keep their original real-world size. Small pieces (e.g. an earring reused as a pendant)
 must look small relative to the chain/strands, the bust or the wrist — never enlarge them.
 Arrange the set like a studio set photo: main piece on its display, companion pieces beside it.
-Display it so the size is obvious: necklaces and chokers on a neck bust, bracelets/bangles on a wrist form or
-bangle stand, earrings on an earring stand, rings on a ring cone.
+
+{house_photo}
 
 Framing: the ENTIRE piece must be fully visible with clear empty margin on every side — nothing cropped at
 the edges. One photorealistic product photo of the new set only. No text, no labels, no people, no borders,
@@ -193,7 +202,30 @@ OCCASIONS = {
     "festive": "Festivals, parties and family functions — noticeable, with some colour and sparkle.",
     "ceremonial": "Weddings and ceremonies — rich, statement pieces with matching companions.",
 }
-PIECES = ["necklace", "choker", "long haar", "earrings", "bangles", "bracelet", "ring", "pendant", "maang tikka"]
+# What each piece type means, so "necklace" never turns into a long haar.
+PIECE_SPECS = {
+    "necklace": "necklace — short to princess length, 40-50 cm, sits at or just below the collarbone",
+    "choker": "choker — snug, 32-38 cm, sits high on the neck",
+    "long haar": "long haar — 60-80 cm, falls below the chest",
+    "earrings": "earrings — a matching pair",
+    "bangles": "bangles — rigid round bangles",
+    "bracelet": "bracelet — flexible, worn on the wrist",
+    "ring": "ring",
+    "pendant": "pendant — on a fine chain of 40-45 cm",
+    "maang tikka": "maang tikka — forehead piece",
+}
+PIECES = list(PIECE_SPECS)
+
+
+def piece_rule(pieces):
+    """Hard limit on piece types when the customer picked some."""
+    if not pieces:
+        return ""
+    specs = "; ".join(PIECE_SPECS[x] for x in pieces)
+    return (f"ALLOWED PIECES — STRICT: the customer chose only these types: {specs}. Every entry in gold_split and "
+            "everything in render_prompt must be one of them. Do NOT add any other type — no long haar or long chain, "
+            "bracelet, ring, pendant, maang tikka etc. unless it is in that list. Put leftover gold into making the "
+            "chosen pieces fuller, or into more than one of the chosen types.")
 SET_SIZES = {
     "any": "Designer's choice of how many pieces.",
     "single": "One single piece.",
@@ -225,7 +257,8 @@ async def design(photo: Image.Image, wish: str, n: int, style: str, grams: float
                                     else f"{grams:g} g (given by the customer)" if grams else "not given — estimate it from the photo",
                                     karat=karat, rate=rate, occasion=OCCASIONS.get(b.get("occasion"), "not given"),
                                     pieces=f"{pieces}. {SET_SIZES.get(b.get('set_size'), SET_SIZES['any'])}",
-                                    goal=goal_text(b.get("goal"), b.get("topup", 0), karat, rate))
+                                    goal=goal_text(b.get("goal"), b.get("topup", 0), karat, rate),
+                                    piece_rule=piece_rule(b.get("pieces")))
     resp = await client.aio.models.generate_content(
         model=TEXT_MODEL,
         contents=[photo, prompt],
@@ -267,7 +300,10 @@ def _render_prompt(d, style):
     pieces = "; ".join(f"{g.get('piece')} (~{g.get('grams')} g)" for g in d.get("gold_split", [])) or d["title"]
     return RENDER_PROMPT.format(style_render=STYLES[style]["render"], title=d["title"],
                                 render_prompt=d["render_prompt"], scale=d.get("scale", ""),
-                                pieces=pieces, added=", ".join(d.get("added", [])) or "pearls or stones that suit the design")
+                                pieces=pieces, added=", ".join(d.get("added", [])) or "pearls or stones that suit the design",
+                                house_photo=HOUSE_PHOTO,
+                                allowed=f"Show ONLY these piece types, nothing else: {', '.join(d['allowed'])}. "
+                                        "Do not add any extra chain, haar, bracelet or other piece.\n" if d.get("allowed") else "")
 
 
 async def render_gemini(photo: Image.Image, d: dict, style: str, out_path: Path):
@@ -354,7 +390,8 @@ async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: st
             d["cost"] = pricing.design_cost(d, old_g, karat, b["rate24"], plan["estimate"]["grams_range"])
     engines = COMPARE if engine == "compare" else [engine]
     # One card per (design, engine) so each render can be compared and kept on its own.
-    cards = [{**d, "engine": e, "engine_name": ENGINES[e][0]} for d in plan["designs"][:n] for e in engines]
+    cards = [{**d, "engine": e, "engine_name": ENGINES[e][0], "allowed": b.get("pieces") or []}
+             for d in plan["designs"][:n] for e in engines]
     results = await asyncio.gather(
         *(ENGINES[c["engine"]][1](photo.copy(), c, style, out_dir / f"design_{i}.png") for i, c in enumerate(cards, 1)),
         return_exceptions=True,
