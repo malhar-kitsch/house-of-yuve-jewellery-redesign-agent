@@ -62,14 +62,28 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 .cost{margin-top:10px;padding:10px 12px;background:#f6efe1;border-radius:10px;font-size:13px}
 .cost .pay{font-size:15px;font-weight:500;margin-bottom:4px}
 .cost div{display:flex;justify-content:space-between;gap:8px}
+[hidden]{display:none!important}
+.head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px}
+.histbtn{background:none;color:var(--teal);border:1px solid var(--teal);padding:8px 18px;font-size:14px;flex-shrink:0}
+.history{margin-bottom:28px}
+.history h2{font:600 26px "Cormorant Garamond",serif;margin:0 0 12px}
+.runs{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.run{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden;cursor:pointer;text-align:left;padding:0;color:var(--ink);font:inherit}
+.run img{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:#efe8da}
+.run div{padding:8px 10px;font-size:13px;line-height:1.35}
+.run small{color:var(--muted)}
+.inputs{font-size:13px;color:var(--muted);margin-top:6px}
 .shimmer{background:linear-gradient(90deg,#efe8da 25%,#f7f1e4 50%,#efe8da 75%);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes sh{to{background-position:-200% 0}}
 </style>
 </head>
 <body>
 <main>
-  <h1>Old gold, <span>new story</span></h1>
-  <p class="sub">Upload a photo of an old piece. We'll suggest modern redesigns that reuse your gold — no melting.</p>
+  <div class="head"><div>
+    <h1>Old gold, <span>new story</span></h1>
+    <p class="sub">Upload a photo of an old piece. We'll suggest modern redesigns that reuse your gold — no melting.</p>
+  </div><button class="histbtn" id="histBtn">History</button></div>
+  <section class="history" id="history" hidden><h2>Past designs</h2><div class="runs" id="runs"></div></section>
 
   <div class="top">
     <div class="drop" id="drop"><div>Tap or drop a photo<br><small>JPG / PNG</small></div><input type="file" id="file" accept="image/*" hidden></div>
@@ -78,8 +92,10 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
       <div class="row" style="margin-top:0">
         <input type="number" id="grams" min="0" step="0.5" placeholder="Weight (g)" title="Gold weight in grams, if known">
         <select id="karat" title="Purity"><option value="24">24K</option><option value="22" selected>22K</option><option value="18">18K</option><option value="14">14K</option></select>
-        <span class="hint" style="margin:0">24K rate today ₹</span><input type="number" id="rate" min="0" step="1" placeholder="per gram" title="Today's 24K gold rate per gram — fetched live, edit if your rate differs">
+        <span class="hint" style="margin:0">24K today ₹</span><input type="number" id="rate" min="0" step="100" placeholder="per 10 g" title="Today's 24K gold rate per 10 g — fetched live, edit if your rate differs"><span class="hint" style="margin:0">per 10 g</span>
       </div>
+      <div class="hint" id="rateSrc"></div>
+      <div class="worth" id="weighed"></div>
       <div class="worth" id="worth"></div>
 
       <div class="q"><label>What would you like to do?</label>
@@ -148,15 +164,45 @@ $('goal').addEventListener('change', () => {
   $('wishLabel').innerHTML = g === 'idea' ? 'Describe what you have in mind' : 'Anything else? <span style="color:var(--muted);font-weight:400">(optional)</span>';
   $('wish').placeholder = g === 'idea' ? 'e.g. a layered necklace with a big centre pendant and matching jhumkas' : 'e.g. keep the peacock motif, add emeralds';
 });
+// Weight read from the photo; cleared as soon as someone types the real weight.
+let weighed = null;
+const rate24 = () => +$('rate').value / 10;
 function updateWorth(){
-  const g = +$('grams').value, r = +$('rate').value * PURITY[$('karat').value];
-  $('worth').innerHTML = g && r ? `Your gold is worth about <b>${inr(g * r * 0.95)} – ${inr(g * r * 1.05)}</b> at today's rate (${inr(r)}/g for ${$('karat').value}K).`
-    : r ? '<span class="hint">Add the weight to see what your gold is worth. Not sure? Leave it blank and we\'ll estimate from the photo.</span>' : '';
+  const g = +$('grams').value, r = rate24() * PURITY[$('karat').value];
+  const [lo, hi] = weighed ? [weighed.total_low, weighed.total_high] : [g * 0.95, g * 1.05];
+  $('worth').innerHTML = g && r ? `Your gold is worth about <b>${inr(lo * r)} – ${inr(hi * r)}</b> at today's rate (${inr(r * 10)} per 10 g of ${$('karat').value}K).`
+    : r ? '<span class="hint">Add a photo and we\'ll estimate the weight, or type it in if you know it.</span>' : '';
   const t = +$('topup').value;
   $('topupHint').textContent = t && r ? `≈ ${(t / r).toFixed(1)} g of extra gold, or richer stones` : '';
 }
 ['grams', 'karat', 'rate', 'topup'].forEach(id => $(id).addEventListener('input', updateWorth));
-fetch('/api/gold-rate').then(r => r.json()).then(d => { if(d.rate && !$('rate').value){ $('rate').value = d.rate; updateWorth(); } }).catch(()=>{});
+$('grams').addEventListener('input', () => {
+  if(!weighed) return;
+  weighed = null; $('weighed').innerHTML = '<span class="hint">Using the weight you entered.</span>'; updateWorth();
+});
+$('karat').addEventListener('change', updateWorth);
+fetch('/api/gold-rate').then(r => r.json()).then(d => {
+  if(!d.rate || $('rate').value) return;
+  $('rate').value = Math.round(d.rate * 10); $('rateSrc').textContent = `Live rate from ${d.source}. Change it if your rate differs.`; updateWorth();
+}).catch(() => { $('rateSrc').textContent = "Couldn't fetch today's rate — type it in."; });
+
+async function weigh(f){
+  weighed = null; $('grams').value = ''; updateWorth();
+  $('weighed').innerHTML = '<span class="hint">Reading your piece to estimate the gold weight…</span>';
+  const fd = new FormData(); fd.append('photo', await shrink(f), 'photo.jpg');
+  try{
+    const r = await fetch('/api/weigh', {method:'POST', body:fd});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.detail);
+    if(f !== file) return;  // a newer photo was picked meanwhile
+    weighed = d; $('grams').value = d.best;
+    $('weighed').innerHTML = `<b>From the photo:</b> ${d.pieces.map(p => `${esc(p.type)} (~${p.low}–${p.high} g)`).join(' + ')}. `
+      + `Estimated total <b>~${d.best} g</b>. <span class="hint">Change it if you know the exact weight.</span>`;
+    updateWorth();
+  }catch(e){
+    $('weighed').innerHTML = `<span class="hint">Couldn't estimate the weight (${esc(e.message || 'unknown error')}) — type it in, or we'll estimate while designing.</span>`;
+  }
+}
 
 function pick(f){
   if(!f || !f.type.startsWith('image/')) return;
@@ -164,6 +210,7 @@ function pick(f){
   const img = document.createElement('img'); img.src = URL.createObjectURL(f);
   $('drop').querySelector('img')?.remove(); $('drop').appendChild(img);
   $('go').disabled = false;
+  weigh(f);
 }
 $('drop').onclick = () => $('file').click();
 $('file').onchange = e => pick(e.target.files[0]);
@@ -185,19 +232,40 @@ $('go').onclick = async () => {
   $('piece').textContent = '';
   $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
   const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', chosen('style')[0]); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
-  fd.append('karat', $('karat').value); fd.append('rate24', $('rate').value || 0); fd.append('goal', chosen('goal')[0]);
+  fd.append('karat', $('karat').value); fd.append('rate24', rate24() || 0); fd.append('grams_estimated', !!weighed); fd.append('goal', chosen('goal')[0]);
   fd.append('topup', $('topup').value || 0); fd.append('pieces', chosen('pieces').join(',')); fd.append('set_size', chosen('setSize')[0]);
   fd.append('occasion', chosen('occasion')[0]);
   try{
     const r = await fetch('/api/redesign', {method:'POST', body:fd});
     const d = await r.json().catch(() => ({detail: `Server error (HTTP ${r.status}) with no details.`}));
     if(!r.ok) throw new Error(d.detail || 'Something went wrong');
+    show(d);
+    $('status').textContent = d.history_error || '';
+    showSpend(d.usage);
+    if(!$('history').hidden) loadHistory();
+  }catch(e){
+    $('grid').innerHTML = ''; $('status').className = 'status err'; $('status').textContent = e.message;
+  }
+  $('go').disabled = false;
+};
+const LABELS = {own: 'Redesign with my gold', topup: 'Top up', idea: 'Own idea', any: "designer's choice", single: 'one piece',
+  set: 'one matching set', multi: 'multiple pieces', everyday: 'everyday', casual: 'casual & small events', festive: 'festive', ceremonial: 'ceremonial & bridal'};
+function inputsText(i){
+  if(!i) return '';
+  return [i.grams ? `${i.grams} g${i.grams_estimated ? ' (from photo)' : ''} · ${i.karat}K` : `${i.karat}K`,
+    LABELS[i.goal] + (i.goal === 'topup' && i.topup ? ` ${inr(i.topup)}` : ''),
+    (i.pieces || []).join(', ') || null, LABELS[i.set_size], i.style, LABELS[i.occasion],
+    i.rate24 ? `rate ${inr(i.rate24 * 10)}/10 g` : null, i.wish ? `“${i.wish}”` : null].filter(Boolean).join(' · ');
+}
+// Draws one run's results. Runs opened from history have no "keep" button (their working files may be gone).
+function show(d, fromHistory){
     const est = d.estimate;
     $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`
-      + (est ? `<div class="worth">Your ${est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> (today: ${inr(est.gram_rate)}/g${$('grams').value ? '' : ' · weight guessed from the photo, so the range is wide'}).</div>` : '');
+      + (est ? `<div class="worth">Your ~${est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> (${inr(est.gram_rate * 10)} per 10 g${d.inputs?.grams_estimated || !d.inputs?.grams ? ' · weight estimated from the photo, so the range is wide' : ''}).</div>` : '')
+      + (fromHistory ? `<div class="inputs"><b>Choices:</b> ${esc(inputsText(d.inputs))}</div>` : '');
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
-        <div class="img">${x.image ? `<img src="${x.image_data}" alt="" onclick="openFull(this.src)">` : `<small class="fail">⚠ ${esc(x.error || 'No image came back and the AI gave no reason.')}</small>`}</div>
+        <div class="img">${x.image ? `<img src="${x.image_data || `/api/history/${d.run}/${x.saved_image}`}" alt="" onclick="openFull(this.src)">` : `<small class="fail">⚠ ${esc(x.error || 'No image came back and the AI gave no reason.')}</small>`}</div>
         <div class="body">
           <div class="engine">${esc(x.engine_name || '')}</div>
           <h3>${esc(x.title)}</h3>
@@ -213,16 +281,42 @@ $('go').onclick = async () => {
           </div>` : ''}
           ${(x.added || []).length ? `<div class="tags">${x.added.map(a => `<span>+ ${esc(a)}</span>`).join('')}</div>` : ''}
           <div class="ex" title="Reference projects used">${x.examples.map(e => `<img src="/examples/${e}/after" alt="${e}">`).join('')}</div>
-          ${x.image ? `<button class="keep" data-run="${d.run}" data-i="${i + 1}">♡ Keep as example</button>` : ''}
+          ${x.image && !fromHistory ? `<button class="keep" data-run="${d.run}" data-i="${i + 1}">♡ Keep as example</button>` : ''}
         </div>
       </div>`).join('');
-    $('status').textContent = '';
-    showSpend(d.usage);
-  }catch(e){
-    $('grid').innerHTML = ''; $('status').className = 'status err'; $('status').textContent = e.message;
-  }
-  $('go').disabled = false;
+}
+
+$('histBtn').onclick = () => {
+  $('history').hidden = !$('history').hidden;
+  if(!$('history').hidden) loadHistory();
 };
+async function loadHistory(){
+  $('runs').innerHTML = '<span class="hint">Loading…</span>';
+  try{
+    const r = await fetch('/api/history'); const runs = await r.json();
+    if(!r.ok) throw new Error(runs.detail);
+    $('runs').innerHTML = runs.length ? runs.map(x => `
+      <button class="run" data-run="${esc(x.run)}">
+        <img src="/api/history/${esc(x.run)}/thumb.jpg" alt="" loading="lazy">
+        <div>${esc(x.piece || 'Piece')}<br><small>${esc(when(x.run))} · ${x.designs} design${x.designs === 1 ? '' : 's'}${x.gold_value && x.gold_value[0] ? `<br>Gold ${range(x.gold_value)}` : ''}<br>${esc(LABELS[x.inputs?.goal] || '')}</small></div>
+      </button>`).join('') : '<span class="hint">Nothing yet — designs you create will show up here.</span>';
+  }catch(e){ $('runs').innerHTML = `<span class="hint">${esc(e.message || "Couldn't load history")}</span>`; }
+}
+$('runs').addEventListener('click', async e => {
+  const b = e.target.closest('.run'); if(!b) return;
+  $('status').className = 'status'; $('status').textContent = 'Opening…';
+  try{
+    const r = await fetch(`/api/history/${b.dataset.run}`); const d = await r.json();
+    if(!r.ok) throw new Error(d.detail);
+    show(d, true); $('status').textContent = `Showing a past run from ${when(d.run)}.`;
+    $('piece').scrollIntoView({behavior: 'smooth'});
+  }catch(err){ $('status').className = 'status err'; $('status').textContent = err.message || "Couldn't open that run"; }
+});
+// Run ids start with the UTC time they were made: 20261027-142501-ab12
+function when(id){
+  const m = /^(\d{4})(\d\d)(\d\d)-(\d\d)(\d\d)/.exec(id); if(!m) return id;
+  return new Date(Date.UTC(+m[1], m[2] - 1, +m[3], +m[4], +m[5])).toLocaleString('en-IN', {day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit'});
+}
 $('grid').addEventListener('click', async e => {
   const b = e.target.closest('.keep'); if(!b) return;
   const kept = !b.classList.contains('on');

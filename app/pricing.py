@@ -1,12 +1,12 @@
 """Today's gold rate and rough price estimates for the customer's gold and each redesign."""
-import os, time
+import os, re, time
 
 import httpx
 
 # Share of pure gold in each karat.
 PURITY = {"24": 1.0, "22": 0.916, "18": 0.75, "14": 0.585}
-# International spot price -> Indian retail rate (import duty + GST).
-INDIA_PREMIUM = float(os.getenv("GOLD_INDIA_PREMIUM", "1.09"))
+# Backup only: international spot price -> Indian rate (duty, GST, local premium).
+INDIA_PREMIUM = float(os.getenv("GOLD_INDIA_PREMIUM", "1.17"))
 # Labour for reworking, as a share of the gold value in the new piece.
 MAKING = (0.08, 0.15)
 OZ = 31.1035
@@ -18,10 +18,25 @@ async def rate_24k():
     if os.getenv("GOLD_RATE_24K"):
         return {"rate": float(os.environ["GOLD_RATE_24K"]), "source": "fixed rate"}
     if not _cache["rate"] or time.time() - _cache["at"] > 3600:
-        async with httpx.AsyncClient(timeout=10) as http:
-            r = await http.get("https://api.gold-api.com/price/XAU/INR")
-        _cache.update(at=time.time(), rate=round(r.json()["price"] / OZ * INDIA_PREMIUM))
-    return {"rate": _cache["rate"], "source": "live"}
+        try:
+            rate, source = await _goodreturns(), "GoodReturns, Mumbai"
+        except Exception:
+            async with httpx.AsyncClient(timeout=10) as http:
+                r = await http.get("https://api.gold-api.com/price/XAU/INR")
+            rate, source = round(r.json()["price"] / OZ * INDIA_PREMIUM), "world price + Indian premium"
+        _cache.update(at=time.time(), rate=rate, source=source)
+    return {"rate": _cache["rate"], "source": _cache["source"]}
+
+
+async def _goodreturns():
+    """Indian market 24K rate per gram from the Mumbai row of goodreturns.in."""
+    async with httpx.AsyncClient(timeout=10, headers={"User-Agent": "Mozilla/5.0"}) as http:
+        html = (await http.get("https://www.goodreturns.in/gold-rates/")).text
+    text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", html)).replace("&#x20b9;", "₹")
+    rate = float(re.search(r"Mumbai ₹([\d,]+) ₹[\d,]+ ₹[\d,]+", text).group(1).replace(",", ""))
+    if not 3000 < rate < 100000:
+        raise ValueError(f"odd rate {rate}")
+    return rate
 
 
 def per_gram(rate24, karat):

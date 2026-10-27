@@ -1,4 +1,4 @@
-import base64, io, os, secrets, time, uuid
+import base64, io, json, os, re, secrets, time, uuid
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
-from app import agents, pricing, usage
+from app import agents, history, pricing, usage
 
 from app.paths import OUT
 
@@ -34,19 +34,37 @@ async def require_password(request: Request, call_next):
     return await call_next(request)
 
 
+def _read_photo(data: bytes):
+    try:
+        img = Image.open(io.BytesIO(data)).convert("RGB")
+    except Exception:
+        raise HTTPException(400, "Could not read that image")
+    img.thumbnail((1536, 1536))
+    return img
+
+
+@app.post("/api/weigh")
+async def weigh(photo: UploadFile = File(...)):
+    """Estimate the gold weight from the photo as soon as it is added."""
+    try:
+        return await agents.weigh(_read_photo(await photo.read()))
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(502, f"Couldn't estimate the weight: {agents.explain(e)}")
+
+
 @app.post("/api/redesign")
 async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: int = Form(4),
                    style: str = Form("modern"), engine: str = Form("gemini"), grams: float = Form(0),
                    karat: str = Form("22"), goal: str = Form("own"), topup: float = Form(0), pieces: str = Form(""),
-                   set_size: str = Form("any"), occasion: str = Form(""), rate24: float = Form(0)):
+                   set_size: str = Form("any"), occasion: str = Form(""), rate24: float = Form(0),
+                   grams_estimated: bool = Form(False)):
     if style not in agents.STYLES:
         raise HTTPException(400, "Unknown style")
     if engine != "compare" and engine not in agents.ENGINES:
         raise HTTPException(400, "Unknown image engine")
-    try:
-        img = Image.open(io.BytesIO(await photo.read())).convert("RGB")
-    except Exception:
-        raise HTTPException(400, "Could not read that image")
+    img = _read_photo(await photo.read())
     if karat not in pricing.PURITY:
         karat = "22"
     if not rate24:
@@ -56,9 +74,9 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
             rate24 = 0  # no live rate: designs still work, just without prices
     brief = {"karat": karat, "goal": goal, "topup": max(topup, 0) if goal == "topup" else 0,
              "pieces": [x for x in pieces.split(",") if x in agents.PIECES], "set_size": set_size,
-             "occasion": occasion, "rate24": rate24, "rate": pricing.per_gram(rate24, karat)}
-    img.thumbnail((1536, 1536))
-    run_id = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
+             "occasion": occasion, "rate24": rate24, "rate": pricing.per_gram(rate24, karat),
+             "grams_estimated": grams_estimated and grams > 0}
+    run_id = time.strftime("%Y%m%d-%H%M%S-", time.gmtime()) + uuid.uuid4().hex[:4]
     out_dir = OUT / run_id
     out_dir.mkdir()
     img.save(out_dir / "original.jpg", quality=92)
@@ -67,19 +85,59 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
     except Exception as e:
         raise HTTPException(502, f"Couldn't create designs: {agents.explain(e)}")
     # Send images back inline: on Vercel a later request may land on a different server.
-    for d in plan["designs"]:
+    files = {"original.jpg": _jpeg(out_dir / "original.jpg"), "thumb.jpg": _jpeg(out_dir / "original.jpg", 360)}
+    for i, d in enumerate(plan["designs"], 1):
         if d.get("image"):
-            d["image_data"] = _jpeg_data_url(out_dir / d["image"])
-    return {"run": run_id, **plan, "usage": usage.summary()}
+            files[f"design_{i}.jpg"] = _jpeg(out_dir / d["image"])
+            d["saved_image"] = f"design_{i}.jpg"
+    inputs = {"wish": wish, "style": style, "engine": engine, "grams": grams, "grams_estimated": brief["grams_estimated"],
+              **{k: brief[k] for k in ("karat", "goal", "topup", "pieces", "set_size", "occasion", "rate24")}}
+    run = {"run": run_id, "inputs": inputs, **plan}
+    try:
+        await history.save_run(run_id, files, run)
+    except Exception as e:
+        run["history_error"] = f"Not saved to history: {str(e)[:150]}"
+    for d in run["designs"]:
+        if d.get("saved_image"):
+            d["image_data"] = "data:image/jpeg;base64," + base64.b64encode(files[d["saved_image"]]).decode()
+    return {**run, "usage": usage.summary()}
 
 
-def _jpeg_data_url(path, max_side=1200):
+def _jpeg(path, max_side=1200):
     # Vercel caps responses at ~4.5MB, so send compact JPEGs (full PNG stays on disk).
     im = Image.open(path).convert("RGB")
     im.thumbnail((max_side, max_side))
     buf = io.BytesIO()
     im.save(buf, "JPEG", quality=85)
-    return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode()
+    return buf.getvalue()
+
+
+RUN_ID = re.compile(r"^[\w-]+$")
+
+
+@app.get("/api/history")
+async def list_history():
+    try:
+        return await history.list_runs()
+    except Exception as e:
+        raise HTTPException(502, f"Couldn't load history: {str(e)[:150]}")
+
+
+@app.get("/api/history/{run}")
+async def get_run(run: str):
+    data = await history.get(f"runs/{run}/run.json") if RUN_ID.match(run) else None
+    if not data:
+        raise HTTPException(404, "That run wasn't found")
+    return json.loads(data)
+
+
+@app.get("/api/history/{run}/{name}")
+async def history_image(run: str, name: str):
+    ok = RUN_ID.match(run) and re.match(r"^(original|thumb|design_\d+)\.jpg$", name)
+    data = await history.get(f"runs/{run}/{name}") if ok else None
+    if not data:
+        raise HTTPException(404)
+    return Response(data, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=31536000, immutable"})
 
 
 @app.post("/api/keep")

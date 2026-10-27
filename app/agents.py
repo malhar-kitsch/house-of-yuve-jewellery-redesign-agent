@@ -221,7 +221,8 @@ async def design(photo: Image.Image, wish: str, n: int, style: str, grams: float
     catalogue = "\n".join(f"- {k} [{v['style']}]: {v['transformation']}" for k, v in CATALOGUE.items())
     pieces = ", ".join(b.get("pieces") or []) or "designer's choice"
     prompt = DESIGNER_PROMPT.format(style_brief=STYLES[style]["brief"], wish=wish or "(none)", catalogue=catalogue, n=n,
-                                    grams=f"{grams:g} g (given by the customer)" if grams else "not given — estimate it from the photo",
+                                    grams=f"about {grams:g} g (estimated from the photo)" if grams and b.get("grams_estimated")
+                                    else f"{grams:g} g (given by the customer)" if grams else "not given — estimate it from the photo",
                                     karat=karat, rate=rate, occasion=OCCASIONS.get(b.get("occasion"), "not given"),
                                     pieces=f"{pieces}. {SET_SIZES.get(b.get('set_size'), SET_SIZES['any'])}",
                                     goal=goal_text(b.get("goal"), b.get("topup", 0), karat, rate))
@@ -236,6 +237,30 @@ async def design(photo: Image.Image, wish: str, n: int, style: str, grams: float
         d["examples"] = [e for e in d.get("examples", []) if e in CATALOGUE][:EXAMPLES_PER_DESIGN] \
             or list(CATALOGUE)[:EXAMPLES_PER_DESIGN]
     return plan
+
+
+WEIGH_PROMPT = """You are an experienced Indian jeweller valuing old gold from a photo.
+List every separate gold piece you can see (count a pair of earrings as one item) and estimate its gold weight
+in grams. Judge real size from the type of piece and its parts (bead size, chain thickness, pendant size,
+number of strands), and whether it looks solid or hollow / light filigree. Typical Indian weights for guidance:
+stud earrings 2-5 g a pair, jhumkas / chandbalis 8-25 g a pair, ring 3-8 g, light chain 5-15 g,
+pendant 3-10 g, light necklace 15-30 g, choker 25-60 g, long haar / rani haar 40-120 g, bangle 10-25 g each.
+Stones, pearls, kundan and enamel are not gold — leave their weight out.
+
+Return JSON only:
+{"pieces": [{"type": "e.g. long bead haar with pendant", "low": 40, "high": 55}],
+ "total_low": 50, "total_high": 69, "best": 58,
+ "note": "one short sentence on what drove the estimate"}"""
+
+
+async def weigh(photo: Image.Image):
+    """Estimate how much gold is in the photo, before any design work."""
+    resp = await client.aio.models.generate_content(
+        model=TEXT_MODEL, contents=[photo, WEIGH_PROMPT],
+        config=types.GenerateContentConfig(response_mime_type="application/json"),
+    )
+    usage.record_text(TEXT_MODEL, resp.usage_metadata)
+    return json.loads(resp.text)
 
 
 def _render_prompt(d, style):
@@ -323,7 +348,7 @@ async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: st
     karat, rate = b.get("karat", "22"), b.get("rate", 0)
     if rate and old_g:
         plan["estimate"] = {"rate24": b["rate24"], "gram_rate": round(rate), "topup": b.get("topup", 0),
-                            **pricing.old_gold(old_g, karat, b["rate24"], estimated=not grams)}
+                            **pricing.old_gold(old_g, karat, b["rate24"], estimated=not grams or b.get("grams_estimated", False))}
         for d in plan["designs"]:
             d["cost"] = pricing.design_cost(d, old_g, karat, b["rate24"])
     engines = COMPARE if engine == "compare" else [engine]
