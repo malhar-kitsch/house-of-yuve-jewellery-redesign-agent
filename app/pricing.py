@@ -9,6 +9,8 @@ PURITY = {"24": 1.0, "22": 0.916, "18": 0.75, "14": 0.585}
 INDIA_PREMIUM = float(os.getenv("GOLD_INDIA_PREMIUM", "1.17"))
 # Labour for reworking, as a share of the gold value in the new piece.
 MAKING = (0.08, 0.15)
+# What a jeweller takes off when crediting old gold (testing, melting loss).
+EXCHANGE_DEDUCTION = 0.05
 OZ = 31.1035
 _cache = {"at": 0, "rate": None}
 
@@ -48,11 +50,13 @@ def old_gold(grams, karat, rate24, estimated, grams_range=None):
     gram = per_gram(rate24, karat)
     spread = 0.2 if estimated else 0.05
     low, high = grams_range or (grams * (1 - spread), grams * (1 + spread))
-    return {"grams": grams, "karat": karat, "value": round(grams * gram), "low": round(low * gram), "high": round(high * gram)}
+    keep = 1 - EXCHANGE_DEDUCTION
+    return {"grams": grams, "karat": karat, "value": round(grams * gram * keep), "deduction_pct": round(EXCHANGE_DEDUCTION * 100),
+            "market": [round(low * gram), round(high * gram)], "low": round(low * gram * keep), "high": round(high * gram * keep)}
 
 
 def design_cost(d, old_grams, karat, rate24):
-    """Rough cost of one redesign: gold + new gold + additions + making, minus the customer's own gold."""
+    """Rough cost of one redesign: new gold + additions + making + the exchange deduction on the customer's gold."""
     total_g = sum(_num(g.get("grams")) for g in d.get("gold_split", []))
     new_g = max(0.0, total_g - old_grams)
     gram = per_gram(rate24, karat)
@@ -61,10 +65,11 @@ def design_cost(d, old_grams, karat, rate24):
     add = d.get("additions_cost") or {}
     add_low, add_high = _num(add.get("low")), _num(add.get("high"))
     make_low, make_high = gold * MAKING[0], gold * MAKING[1]
-    low = extra_gold + add_low + make_low
-    high = extra_gold + add_high + make_high
+    deduction = min(old_grams, total_g or old_grams) * gram * EXCHANGE_DEDUCTION
+    low = extra_gold + add_low + make_low + deduction
+    high = extra_gold + add_high + make_high + deduction
     return {"total_grams": round(total_g, 1), "new_gold_grams": round(new_g, 1), "new_gold": round(extra_gold),
-            "additions": [round(add_low), round(add_high)], "making": [round(make_low), round(make_high)],
+            "additions": [round(add_low), round(add_high)], "making": [round(make_low), round(make_high)], "deduction": round(deduction),
             "pay": [round(low), round(high)], "piece_value": [round(gold + add_low + make_low), round(gold + add_high + make_high)]}
 
 

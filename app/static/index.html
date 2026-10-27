@@ -148,6 +148,7 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 const $ = id => document.getElementById(id);
 let file = null;
 const PURITY = {24: 1, 22: 0.916, 18: 0.75, 14: 0.585};
+const KEEP = 0.95;  // jeweller's 5% exchange deduction on old gold (matches pricing.py)
 const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
 const range = ([a, b]) => a === b ? inr(a) : `${inr(a)} – ${inr(b)}`;
 // Chip groups: data-single ones behave like radio buttons, the rest toggle freely.
@@ -170,7 +171,8 @@ const rate24 = () => +$('rate').value / 10;
 function updateWorth(){
   const g = +$('grams').value, r = rate24() * PURITY[$('karat').value];
   const [lo, hi] = weighed ? [weighed.total_low, weighed.total_high] : [g * 0.95, g * 1.05];
-  $('worth').innerHTML = g && r ? `Your gold is worth about <b>${inr(lo * r)} – ${inr(hi * r)}</b> at today's rate (${inr(r * 10)} per 10 g of ${$('karat').value}K).`
+  $('worth').innerHTML = g && r ? `Your gold is worth about <b>${inr(lo * r * KEEP)} – ${inr(hi * r * KEEP)}</b> after a 5% exchange deduction`
+      + ` <span class="hint">(market value ${inr(lo * r)} – ${inr(hi * r)} at ${inr(r * 10)} per 10 g of ${$('karat').value}K)</span>.`
     : r ? '<span class="hint">Add a photo and we\'ll estimate the weight, or type it in if you know it.</span>' : '';
   const t = +$('topup').value;
   $('topupHint').textContent = t && r ? `≈ ${(t / r).toFixed(1)} g of extra gold, or richer stones` : '';
@@ -262,7 +264,7 @@ function inputsText(i){
 function show(d, fromHistory){
     const est = d.estimate;
     $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`
-      + (est ? `<div class="worth">Your ~${est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> (${inr(est.gram_rate * 10)} per 10 g${d.inputs?.grams_estimated || !d.inputs?.grams ? ' · weight estimated from the photo, so the range is wide' : ''}).</div>` : '')
+      + (est ? `<div class="worth">Your ~${est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> after a ${est.deduction_pct ?? 5}% exchange deduction (market value ${range(est.market || [est.low, est.high])} at ${inr(est.gram_rate * 10)} per 10 g${d.inputs?.grams_estimated || !d.inputs?.grams ? ' · weight estimated from the photo, so the range is wide' : ''}).</div>` : '')
       + (fromHistory ? `<div class="inputs"><b>Choices:</b> ${esc(inputsText(d.inputs))}</div>` : '');
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
@@ -278,6 +280,7 @@ function show(d, fromHistory){
             ${x.cost.new_gold_grams ? `<div><span>New gold (${x.cost.new_gold_grams} g)</span><span>${inr(x.cost.new_gold)}</span></div>` : ''}
             <div><span>Stones &amp; additions</span><span>${range(x.cost.additions)}</span></div>
             <div><span>Making charges</span><span>${range(x.cost.making)}</span></div>
+            ${x.cost.deduction ? `<div><span>Exchange deduction on your gold (5%)</span><span>${inr(x.cost.deduction)}</span></div>` : ''}
             <div style="color:var(--muted)"><span>Finished piece worth</span><span>${range(x.cost.piece_value)}</span></div>
           </div>` : ''}
           ${(x.added || []).length ? `<div class="tags">${x.added.map(a => `<span>+ ${esc(a)}</span>`).join('')}</div>` : ''}
