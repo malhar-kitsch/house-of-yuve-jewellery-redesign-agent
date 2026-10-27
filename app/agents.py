@@ -9,7 +9,7 @@ from google import genai
 from google.genai import types
 from PIL import Image
 
-from app import usage
+from app import pricing, usage
 
 from app.paths import DATA, KEPT
 TEXT_MODEL = os.getenv("TEXT_MODEL", "gemini-flash-latest")
@@ -70,11 +70,19 @@ into lighter, modern, elegant pieces.
 
 Style direction: {style_brief}
 
+Occasion: {occasion}
+
 Customer's wish (may be empty): {wish}
 
-Gold weight: {grams}
+Gold weight: {grams}, {karat}K
 
-GOLD BUDGET — use ALL of the customer's gold. If the main new piece needs less gold than the old piece
+What they want to make: {pieces}
+
+GOAL — {goal}
+
+Today's {karat}K gold rate: about ₹{rate:,.0f} per gram.
+
+GOLD BUDGET — use ALL of the customer's gold (plus any new gold the goal allows). If the main new piece needs less gold than the old piece
 (e.g. a 20 g necklace becoming 4 g earrings), turn the leftover into matching companion pieces — earrings,
 ring, pendant, maang tikka, bracelet, a second lighter chain — or make the main piece fuller, so the split
 adds up to roughly the total. Never leave gold unaccounted for.
@@ -99,13 +107,17 @@ Return JSON only:
       "reuse": "which existing elements are kept and where they go",
       "gold_split": [{{"piece": "e.g. main pendant necklace", "grams": 12}}, {{"piece": "matching earrings", "grams": 5}}],
       "added": ["new materials added, e.g. rice pearls", "lab-grown diamonds"],
+      "additions_cost": {{"low": 8000, "high": 15000}},
       "render_prompt": "detailed visual description of the NEW piece(s) for an image model: the main piece AND every companion piece from gold_split, form, layout, the added materials, finish, colours",
       "scale": "real-world size of the new piece and of each reused element in it, in cm (reused elements keep their original size)",
       "examples": ["2 reference ids from the list whose style best fits this design"]
     }}
   ]
 }}
-Give exactly {n} distinct design(s), all following the style direction. If more than one, at least one should
+"gold_split" grams must add up to the customer's gold PLUS any new gold bought with a top-up.
+"additions_cost" is your realistic Indian retail estimate in rupees (numbers only) for the added materials.
+
+Give exactly {n} distinct design(s), all following the style direction, the occasion and the pieces they want. If more than one, at least one should
 change the type of piece (e.g. necklace -> bracelet/bangle/ring/earrings) if that is realistic for the gold available."""
 
 STYLES = {
@@ -175,10 +187,44 @@ def _img(path_or_bytes):
     return Image.open(path_or_bytes).convert("RGB")
 
 
-async def design(photo: Image.Image, wish: str, n: int, style: str, grams: float = 0):
+OCCASIONS = {
+    "everyday": "Everyday wear — light, comfortable, durable, nothing that snags.",
+    "casual": "Casual outings and small get-togethers — easy to wear but a little dressier than daily wear.",
+    "festive": "Festivals, parties and family functions — noticeable, with some colour and sparkle.",
+    "ceremonial": "Weddings and ceremonies — rich, statement pieces with matching companions.",
+}
+PIECES = ["necklace", "choker", "long haar", "earrings", "bangles", "bracelet", "ring", "pendant", "maang tikka"]
+SET_SIZES = {
+    "any": "Designer's choice of how many pieces.",
+    "single": "One single piece.",
+    "set": "One matching set (e.g. necklace + earrings).",
+    "multi": "Several separate pieces or sets, splitting the gold between them.",
+}
+
+
+def goal_text(goal, topup, karat, rate):
+    if goal == "topup" and topup:
+        return (f"TOP-UP. The customer will add up to ₹{topup:,.0f} on top of their old gold. Spend it on new "
+                f"{karat}K gold (about {topup / rate:.1f} g if it all went on gold), richer additions and making, so "
+                "the result is bigger or fuller than their gold alone allows — e.g. a small set becomes a full necklace "
+                "set. Keep new gold + additions + ~12% making within the top-up.")
+    if goal == "idea":
+        return ("THEIR OWN IDEA. The customer has something specific in mind (see their wish) — follow it closely and "
+                "make every design a variation of that idea. If it needs more gold than they have, add the new gold to "
+                "gold_split and say so in the idea.")
+    return "OWN GOLD ONLY. No new gold — the gold_split must add up to their gold. Keep additions modest in cost."
+
+
+async def design(photo: Image.Image, wish: str, n: int, style: str, grams: float = 0, brief: dict | None = None):
+    b = brief or {}
+    karat, rate = b.get("karat", "22"), b.get("rate", 0)
     catalogue = "\n".join(f"- {k} [{v['style']}]: {v['transformation']}" for k, v in CATALOGUE.items())
+    pieces = ", ".join(b.get("pieces") or []) or "designer's choice"
     prompt = DESIGNER_PROMPT.format(style_brief=STYLES[style]["brief"], wish=wish or "(none)", catalogue=catalogue, n=n,
-                                    grams=f"{grams:g} g (given by the customer)" if grams else "not given — estimate it from the photo")
+                                    grams=f"{grams:g} g (given by the customer)" if grams else "not given — estimate it from the photo",
+                                    karat=karat, rate=rate, occasion=OCCASIONS.get(b.get("occasion"), "not given"),
+                                    pieces=f"{pieces}. {SET_SIZES.get(b.get('set_size'), SET_SIZES['any'])}",
+                                    goal=goal_text(b.get("goal"), b.get("topup", 0), karat, rate))
     resp = await client.aio.models.generate_content(
         model=TEXT_MODEL,
         contents=[photo, prompt],
@@ -267,9 +313,19 @@ ENGINES = {
 COMPARE = ["gemini", "gpt", "flux"]
 
 
-async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: str, out_dir: Path, grams: float = 0):
-    plan = await design(photo, wish, n, style, grams)
+async def redesign(photo: Image.Image, wish: str, n: int, style: str, engine: str, out_dir: Path, grams: float = 0,
+                   brief: dict | None = None):
+    b = brief or {}
+    plan = await design(photo, wish, n, style, grams, b)
     plan["style"] = style
+    # Price everything from today's rate; a weight we only guessed from the photo gets a wider range.
+    old_g = grams or pricing._num(plan["piece"].get("gold_grams"))
+    karat, rate = b.get("karat", "22"), b.get("rate", 0)
+    if rate and old_g:
+        plan["estimate"] = {"rate24": b["rate24"], "gram_rate": round(rate), "topup": b.get("topup", 0),
+                            **pricing.old_gold(old_g, karat, b["rate24"], estimated=not grams)}
+        for d in plan["designs"]:
+            d["cost"] = pricing.design_cost(d, old_g, karat, b["rate24"])
     engines = COMPARE if engine == "compare" else [engine]
     # One card per (design, engine) so each render can be compared and kept on its own.
     cards = [{**d, "engine": e, "engine_name": ENGINES[e][0]} for d in plan["designs"][:n] for e in engines]

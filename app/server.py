@@ -10,7 +10,7 @@ from fastapi.responses import FileResponse, Response
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
-from app import agents, usage
+from app import agents, pricing, usage
 
 from app.paths import OUT
 
@@ -36,7 +36,9 @@ async def require_password(request: Request, call_next):
 
 @app.post("/api/redesign")
 async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: int = Form(4),
-                   style: str = Form("modern"), engine: str = Form("gemini"), grams: float = Form(0)):
+                   style: str = Form("modern"), engine: str = Form("gemini"), grams: float = Form(0),
+                   karat: str = Form("22"), goal: str = Form("own"), topup: float = Form(0), pieces: str = Form(""),
+                   set_size: str = Form("any"), occasion: str = Form(""), rate24: float = Form(0)):
     if style not in agents.STYLES:
         raise HTTPException(400, "Unknown style")
     if engine != "compare" and engine not in agents.ENGINES:
@@ -45,13 +47,23 @@ async def redesign(photo: UploadFile = File(...), wish: str = Form(""), count: i
         img = Image.open(io.BytesIO(await photo.read())).convert("RGB")
     except Exception:
         raise HTTPException(400, "Could not read that image")
+    if karat not in pricing.PURITY:
+        karat = "22"
+    if not rate24:
+        try:
+            rate24 = (await pricing.rate_24k())["rate"]
+        except Exception:
+            rate24 = 0  # no live rate: designs still work, just without prices
+    brief = {"karat": karat, "goal": goal, "topup": max(topup, 0) if goal == "topup" else 0,
+             "pieces": [x for x in pieces.split(",") if x in agents.PIECES], "set_size": set_size,
+             "occasion": occasion, "rate24": rate24, "rate": pricing.per_gram(rate24, karat)}
     img.thumbnail((1536, 1536))
     run_id = time.strftime("%Y%m%d-%H%M%S-") + uuid.uuid4().hex[:4]
     out_dir = OUT / run_id
     out_dir.mkdir()
     img.save(out_dir / "original.jpg", quality=92)
     try:
-        plan = await agents.redesign(img, wish, max(1, min(count, 6)), style, engine, out_dir, max(grams, 0))
+        plan = await agents.redesign(img, wish, max(1, min(count, 6)), style, engine, out_dir, max(grams, 0), brief)
     except Exception as e:
         raise HTTPException(502, f"Couldn't create designs: {agents.explain(e)}")
     # Send images back inline: on Vercel a later request may land on a different server.
@@ -80,6 +92,14 @@ def keep(run: str = Form(...), index: int = Form(...), kept: bool = Form(True)):
     except (IndexError, KeyError):
         raise HTTPException(400, "No image for that design")
     return {"id": pid, "kept": kept, "examples": len(agents.CATALOGUE)}
+
+
+@app.get("/api/gold-rate")
+async def gold_rate():
+    try:
+        return await pricing.rate_24k()
+    except Exception:
+        raise HTTPException(502, "Couldn't fetch today's gold rate — type it in instead")
 
 
 @app.get("/api/usage")

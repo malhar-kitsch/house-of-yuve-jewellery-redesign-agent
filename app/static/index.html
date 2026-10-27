@@ -26,9 +26,6 @@ textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px
 select{border:1px solid var(--line);border-radius:8px;padding:8px;font:inherit;background:#fff}
 button{background:var(--teal);color:#fff;border:0;border-radius:999px;padding:11px 26px;font:500 15px Inter;cursor:pointer}
 button:disabled{opacity:.5;cursor:default}
-.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;background:#fff}
-.seg button{background:none;color:var(--muted);padding:7px 16px;font-size:14px}
-.seg button.on{background:var(--gold);color:#fff}
 .spend{margin-left:auto;font-size:13px;color:var(--muted)}
 .spend.warn{color:#b3261e;font-weight:500}
 .status{margin-top:14px;color:var(--muted);min-height:22px}
@@ -54,6 +51,17 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 .engine{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);margin-bottom:4px}
 .keep{margin-top:12px;width:100%;background:none;color:var(--gold);border:1px solid var(--gold);padding:8px 14px;font-size:14px}
 .keep.on{background:var(--gold);color:#fff}
+.q{margin-top:16px}
+.q > label{margin-bottom:8px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{background:#fff;color:var(--muted);border:1px solid var(--line);padding:6px 14px;font-size:14px}
+.chips button.on{background:var(--gold);border-color:var(--gold);color:#fff}
+.hint{font-size:13px;color:var(--muted);margin-top:6px}
+.worth{margin-top:8px;font-size:14px}
+.worth b{color:var(--gold)}
+.cost{margin-top:10px;padding:10px 12px;background:#f6efe1;border-radius:10px;font-size:13px}
+.cost .pay{font-size:15px;font-weight:500;margin-bottom:4px}
+.cost div{display:flex;justify-content:space-between;gap:8px}
 .shimmer{background:linear-gradient(90deg,#efe8da 25%,#f7f1e4 50%,#efe8da 75%);background-size:200% 100%;animation:sh 1.4s infinite}
 @keyframes sh{to{background-position:-200% 0}}
 </style>
@@ -66,13 +74,42 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
   <div class="top">
     <div class="drop" id="drop"><div>Tap or drop a photo<br><small>JPG / PNG</small></div><input type="file" id="file" accept="image/*" hidden></div>
     <div class="panel">
-      <label for="wish">Anything you'd like? <span style="color:var(--muted);font-weight:400">(optional)</span></label>
-      <textarea id="wish" placeholder="e.g. something light for daily wear, or turn it into a bracelet"></textarea>
-      <div class="row">
-        <div class="seg" id="style" role="radiogroup" aria-label="Style">
+      <label>Your gold</label>
+      <div class="row" style="margin-top:0">
+        <input type="number" id="grams" min="0" step="0.5" placeholder="Weight (g)" title="Gold weight in grams, if known">
+        <select id="karat" title="Purity"><option value="24">24K</option><option value="22" selected>22K</option><option value="18">18K</option><option value="14">14K</option></select>
+        <span class="hint" style="margin:0">24K rate today ₹</span><input type="number" id="rate" min="0" step="1" placeholder="per gram" title="Today's 24K gold rate per gram — fetched live, edit if your rate differs">
+      </div>
+      <div class="worth" id="worth"></div>
+
+      <div class="q"><label>What would you like to do?</label>
+        <div class="chips" id="goal" data-single>
+          <button type="button" class="on" data-v="own">Redesign with my gold</button><button type="button" data-v="topup">Top up &amp; make it bigger</button><button type="button" data-v="idea">I have something in mind</button>
+        </div>
+        <div class="row" id="topupRow" hidden><span>Add up to ₹</span><input type="number" id="topup" min="0" step="10000" placeholder="e.g. 100000"><span class="hint" id="topupHint" style="margin:0"></span></div>
+      </div>
+
+      <div class="q"><label>Make it into <span style="color:var(--muted);font-weight:400">(pick any)</span></label>
+        <div class="chips" id="pieces">
+          <button type="button" data-v="necklace">Necklace</button><button type="button" data-v="choker">Choker</button><button type="button" data-v="long haar">Long haar</button><button type="button" data-v="earrings">Earrings</button><button type="button" data-v="bangles">Bangles</button><button type="button" data-v="bracelet">Bracelet</button><button type="button" data-v="ring">Ring</button><button type="button" data-v="pendant">Pendant</button><button type="button" data-v="maang tikka">Maang tikka</button>
+        </div>
+        <div class="chips" id="setSize" data-single style="margin-top:8px">
+          <button type="button" class="on" data-v="any">Designer's choice</button><button type="button" data-v="single">One piece</button><button type="button" data-v="set">One matching set</button><button type="button" data-v="multi">Multiple pieces / sets</button>
+        </div>
+      </div>
+
+      <div class="q"><label>Look &amp; occasion</label>
+        <div class="chips" id="style" data-single>
           <button type="button" class="on" data-v="modern">Modern</button><button type="button" data-v="traditional">Traditional</button>
         </div>
-        <input type="number" id="grams" min="0" step="0.5" placeholder="Gold (g)" title="Gold weight in grams, if known">
+        <div class="chips" id="occasion" data-single style="margin-top:8px">
+          <button type="button" class="on" data-v="everyday">Everyday wear</button><button type="button" data-v="casual">Casual &amp; small events</button><button type="button" data-v="festive">Festive &amp; parties</button><button type="button" data-v="ceremonial">Ceremonial &amp; bridal</button>
+        </div>
+      </div>
+
+      <div class="q"><label for="wish" id="wishLabel">Anything else? <span style="color:var(--muted);font-weight:400">(optional)</span></label>
+      <textarea id="wish" placeholder="e.g. keep the peacock motif, add emeralds"></textarea></div>
+      <div class="row">
         <select id="count"><option value="1">1 design</option><option value="2">2 designs</option><option value="4" selected>4 designs</option><option value="6">6 designs</option></select>
         <select id="engine" title="Image AI">
           <option value="gemini">Gemini · ~₹8</option>
@@ -93,11 +130,33 @@ input[type=number]{border:1px solid var(--line);border-radius:8px;padding:8px;fo
 </main>
 <script>
 const $ = id => document.getElementById(id);
-let file = null, style = 'modern';
-$('style').querySelectorAll('button').forEach(b => b.onclick = () => {
-  style = b.dataset.v;
-  $('style').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+let file = null;
+const PURITY = {24: 1, 22: 0.916, 18: 0.75, 14: 0.585};
+const inr = n => '₹' + Math.round(n).toLocaleString('en-IN');
+const range = ([a, b]) => a === b ? inr(a) : `${inr(a)} – ${inr(b)}`;
+// Chip groups: data-single ones behave like radio buttons, the rest toggle freely.
+document.querySelectorAll('.chips').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(g.hasAttribute('data-single')) g.querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b));
+  else b.classList.toggle('on');
+  g.dispatchEvent(new Event('change'));
+}));
+const chosen = id => [...$(id).querySelectorAll('button.on')].map(b => b.dataset.v);
+$('goal').addEventListener('change', () => {
+  const g = chosen('goal')[0];
+  $('topupRow').hidden = g !== 'topup';
+  $('wishLabel').innerHTML = g === 'idea' ? 'Describe what you have in mind' : 'Anything else? <span style="color:var(--muted);font-weight:400">(optional)</span>';
+  $('wish').placeholder = g === 'idea' ? 'e.g. a layered necklace with a big centre pendant and matching jhumkas' : 'e.g. keep the peacock motif, add emeralds';
 });
+function updateWorth(){
+  const g = +$('grams').value, r = +$('rate').value * PURITY[$('karat').value];
+  $('worth').innerHTML = g && r ? `Your gold is worth about <b>${inr(g * r * 0.95)} – ${inr(g * r * 1.05)}</b> at today's rate (${inr(r)}/g for ${$('karat').value}K).`
+    : r ? '<span class="hint">Add the weight to see what your gold is worth. Not sure? Leave it blank and we\'ll estimate from the photo.</span>' : '';
+  const t = +$('topup').value;
+  $('topupHint').textContent = t && r ? `≈ ${(t / r).toFixed(1)} g of extra gold, or richer stones` : '';
+}
+['grams', 'karat', 'rate', 'topup'].forEach(id => $(id).addEventListener('input', updateWorth));
+fetch('/api/gold-rate').then(r => r.json()).then(d => { if(d.rate && !$('rate').value){ $('rate').value = d.rate; updateWorth(); } }).catch(()=>{});
 
 function pick(f){
   if(!f || !f.type.startsWith('image/')) return;
@@ -125,12 +184,17 @@ $('go').onclick = async () => {
   $('status').textContent = 'Studying your piece and sketching ideas… (about 30–60 seconds)';
   $('piece').textContent = '';
   $('grid').innerHTML = Array(n).fill('<div class="card"><div class="img shimmer"></div><div class="body"><h3>&nbsp;</h3><p>&nbsp;</p></div></div>').join('');
-  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', style); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
+  const fd = new FormData(); fd.append('photo', await shrink(file), 'photo.jpg'); fd.append('wish', $('wish').value); fd.append('count', $('count').value); fd.append('style', chosen('style')[0]); fd.append('engine', $('engine').value); fd.append('grams', $('grams').value || 0);
+  fd.append('karat', $('karat').value); fd.append('rate24', $('rate').value || 0); fd.append('goal', chosen('goal')[0]);
+  fd.append('topup', $('topup').value || 0); fd.append('pieces', chosen('pieces').join(',')); fd.append('set_size', chosen('setSize')[0]);
+  fd.append('occasion', chosen('occasion')[0]);
   try{
     const r = await fetch('/api/redesign', {method:'POST', body:fd});
     const d = await r.json().catch(() => ({detail: `Server error (HTTP ${r.status}) with no details.`}));
     if(!r.ok) throw new Error(d.detail || 'Something went wrong');
-    $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`;
+    const est = d.estimate;
+    $('piece').innerHTML = `<b>We see:</b> ${esc(d.piece.type)} — ${esc(d.piece.description)}${d.piece.gold_grams ? ` · <b>Gold:</b> ~${esc(d.piece.gold_grams)} g` : ''}`
+      + (est ? `<div class="worth">Your ${est.grams} g of ${est.karat}K gold is worth about <b>${range([est.low, est.high])}</b> (today: ${inr(est.gram_rate)}/g${$('grams').value ? '' : ' · weight guessed from the photo, so the range is wide'}).</div>` : '');
     $('grid').innerHTML = d.designs.map((x, i) => `
       <div class="card">
         <div class="img">${x.image ? `<img src="${x.image_data}" alt="" onclick="openFull(this.src)">` : `<small class="fail">⚠ ${esc(x.error || 'No image came back and the AI gave no reason.')}</small>`}</div>
@@ -140,6 +204,13 @@ $('go').onclick = async () => {
           <p>${esc(x.idea)}</p>
           <div class="reuse">${esc(x.reuse || '')}</div>
           ${(x.gold_split || []).length ? `<div class="gold">${x.gold_split.map(g => `<div><span>${esc(g.piece)}</span><span>~${esc(g.grams)} g</span></div>`).join('')}</div>` : ''}
+          ${x.cost ? `<div class="cost">
+            <div class="pay"><span>${x.cost.pay[1] ? 'You pay about' : 'Extra to pay'}</span><span>${x.cost.pay[1] ? range(x.cost.pay) : 'nothing'}</span></div>
+            ${x.cost.new_gold_grams ? `<div><span>New gold (${x.cost.new_gold_grams} g)</span><span>${inr(x.cost.new_gold)}</span></div>` : ''}
+            <div><span>Stones &amp; additions</span><span>${range(x.cost.additions)}</span></div>
+            <div><span>Making charges</span><span>${range(x.cost.making)}</span></div>
+            <div style="color:var(--muted)"><span>Finished piece worth</span><span>${range(x.cost.piece_value)}</span></div>
+          </div>` : ''}
           ${(x.added || []).length ? `<div class="tags">${x.added.map(a => `<span>+ ${esc(a)}</span>`).join('')}</div>` : ''}
           <div class="ex" title="Reference projects used">${x.examples.map(e => `<img src="/examples/${e}/after" alt="${e}">`).join('')}</div>
           ${x.image ? `<button class="keep" data-run="${d.run}" data-i="${i + 1}">♡ Keep as example</button>` : ''}
